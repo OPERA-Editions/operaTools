@@ -1,0 +1,1 @@
+In order to transform critical notes from .docx files into TEI please refer to the oXgarage webservice. The oXgarage output can then be transformed to MEI using the respective XSLT in this repository. (../../TEI/to-MEI/oXgarage2mei.xsl
