@@ -4,6 +4,7 @@
   xmlns:xd="http://www.oxygenxml.com/ns/doc/xsl"
   xmlns:tei="http://www.tei-c.org/ns/1.0"
   xmlns:mei="http://www.music-encoding.org/ns/mei"
+  xmlns:uuid="java:java.util.UUID"
   xmlns="http://www.music-encoding.org/ns/mei"
   exclude-result-prefixes="xs xd"
   version="3.0">
@@ -71,12 +72,52 @@
         </xsl:variable>
         <xsl:element name="annot">
           <xsl:attribute name="type">editorialComment</xsl:attribute>
-          <xsl:attribute name="n" select="$no"/>
+          <xsl:attribute name="n" select="position()"/>
+          <xsl:attribute name="xml:id" select="concat('opera_annot_', uuid:randomUUID())"></xsl:attribute>
           <?TODO @plist ?>
           <xsl:element name="title">
             <!-- scene, "bar(s)? bar_first("–"bar_last)?, system -->
-            <?TODO bar bzw bars und – ordentlich implementieren ?>
-            <xsl:value-of select="$scene || ', bar(s) ' || $bar_first || '–' || $bar_last || ', ' || $system"/>
+            <xsl:variable name="titleBarOrSegIndicator">
+              <xsl:choose>
+                <!-- no bars, no segs. -->
+                <xsl:when test="$bar_first = '' and $bar_last = '' and $seg_first = '' and $seg_last = ''"/>
+                <!-- no bars, first seg. -->
+                <xsl:when test="$bar_first = '' and $bar_last = '' and $seg_first != '' and $seg_last = ''">
+                  <xsl:value-of select="concat('seg. ', $seg_first, ', ')"/>
+                </xsl:when>
+                <!-- no bars, different segs. -->
+                <xsl:when test="$bar_first = '' and $bar_last = '' and $seg_first != $seg_last">
+                  <xsl:value-of select="concat('seg. ', $seg_first, '–', $seg_last, ', ')"/>
+                </xsl:when>
+                <!-- no bars, same segs. -->
+                <xsl:when test="$bar_first = '' and $bar_last = '' and $seg_first = $seg_last">
+                  <xsl:value-of select="concat('seg. ', $seg_first, ', ')"/>
+                </xsl:when>
+                <!-- only first bar -->
+                <xsl:when test="$bar_first != '' and $bar_last = ''">
+                  <xsl:value-of select="concat('bar ', $bar_first, ', ')"/>
+                </xsl:when>
+                <!-- only first bar and first seg. -->
+                <xsl:when test="$bar_first != '' and $bar_last = '' and $seg_first != '' and $seg_last = ''">
+                  <xsl:value-of select="concat('bar ', $bar_first, ', seg. ', $seg_first)"/>
+                </xsl:when>
+                <!-- same bars -->
+                <xsl:when test="$bar_last = $bar_first">
+                  <xsl:value-of select="concat('bar ', $bar_first, ', ')"/>
+                </xsl:when>
+                <!-- different bars, no segs. -->
+                <xsl:when test="$bar_last != $bar_first and $seg_first = '' and $seg_last = ''" >
+                  <xsl:value-of select="concat('bars ', $bar_first, '–', $bar_last, ', ')"/>
+                </xsl:when>
+                <!-- different bars, different segs.-->
+                <xsl:when test="$bar_first != $bar_last and $seg_first != $seg_last">
+                  <xsl:value-of select="concat('bars ', $bar_first, '–', $bar_last, ', seg. ', $seg_first, '–', $seg_last, ', ')"/>
+                </xsl:when>
+                <!-- when anything matches, print error message: -->
+                <xsl:otherwise>Hier stimmt was nicht! Bitte die Taktangabe in der Vorlage überprüfen!</xsl:otherwise>
+              </xsl:choose>
+            </xsl:variable>
+            <xsl:value-of select="concat($scene, ', ', $titleBarOrSegIndicator, $system)"/>
           </xsl:element>
           <xsl:choose>
             <xsl:when test="not($note/tei:p)">
