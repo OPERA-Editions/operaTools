@@ -79,7 +79,7 @@
             <!-- scene, "bar(s)? bar_first("–"bar_last)?, system -->
             <xsl:variable name="titleBarOrSegIndicator">
               <xsl:choose>
-                <!-- no bars, no segs. -->
+                <!-- no bars, no segs., so leave empty… -->
                 <xsl:when test="$bar_first = '' and $bar_last = '' and $seg_first = '' and $seg_last = ''"/>
                 <!-- no bars, first seg. -->
                 <xsl:when test="$bar_first = '' and $bar_last = '' and $seg_first != '' and $seg_last = ''">
