@@ -129,6 +129,25 @@
               <xsl:apply-templates select="$note"/>
             </xsl:otherwise>
           </xsl:choose>
+          <!-- OPERA: only one priority …-->
+          <xsl:element name="ptr">
+            <xsl:attribute name="type">priority</xsl:attribute>
+            <xsl:attribute name="target">#ediromAnnotPrio1</xsl:attribute>
+          </xsl:element>
+          <!-- … but 1-3 categories -->
+          <xsl:element name="ptr">
+            <xsl:attribute name="type">categories</xsl:attribute>
+            <xsl:attribute name="target">
+              <xsl:for-each select="tokenize(normalize-space($category), ', ')">
+                <xsl:choose>
+                  <xsl:when test=". = 'M'">#ediromAnnotCategory_Music </xsl:when>
+                  <xsl:when test=". = 'T'">#ediromAnnotCategory_Text </xsl:when>
+                  <xsl:when test=". = 'S'">#ediromAnnotCategory_Stage </xsl:when>
+                  <xsl:otherwise>Hier stimmt was nicht! Bitte Vorlage überprüfen!</xsl:otherwise>
+                </xsl:choose>
+              </xsl:for-each>
+            </xsl:attribute>
+          </xsl:element>
         </xsl:element>
       </xsl:for-each>
     </xsl:element>
