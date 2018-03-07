@@ -16,7 +16,7 @@
     </xd:desc>
   </xd:doc>
   
-  <xsl:output indent="yes"></xsl:output>
+  <xsl:output indent="yes" omit-xml-declaration="yes"></xsl:output>
   
   
   <!--<annot type="criticalCommentary" xmlns="http://www.music-encoding.org/ns/mei">
