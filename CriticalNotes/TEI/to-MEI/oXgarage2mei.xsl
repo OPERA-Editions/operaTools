@@ -4,6 +4,7 @@
   xmlns:xd="http://www.oxygenxml.com/ns/doc/xsl"
   xmlns:tei="http://www.tei-c.org/ns/1.0"
   xmlns:mei="http://www.music-encoding.org/ns/mei"
+  xmlns:edi="http://www.edirom.de/ns/1.3"
   xmlns:uuid="java:java.util.UUID"
   xmlns="http://www.music-encoding.org/ns/mei"
   exclude-result-prefixes="xs xd"
@@ -28,6 +29,18 @@
     </annot>
   </annot>-->
   
+  <xsl:variable name="workID">opera_work_4fb7f9fb-12b0-4266-8da3-3c4420c2a714</xsl:variable>
+  <xsl:variable name="editionID">74338557</xsl:variable>
+  <xsl:variable name="editionIDPrefix">edition-</xsl:variable>
+  <xsl:variable name="basePathToEditionContents">../../../../</xsl:variable>
+  <xsl:variable name="pathToEditionContents">
+    <xsl:value-of select="concat($basePathToEditionContents, $editionIDPrefix, $editionID)"/>
+  </xsl:variable>
+  <xsl:variable name="sourceDocs" select="collection(concat($pathToEditionContents, '/sources?select=*.xml'))"/>
+  <xsl:variable name="editionDoc" select="document(concat($pathToEditionContents, '/', $editionIDPrefix, $editionID, '.xml'))"/>
+  <xsl:variable name="editionConcordances" select="$editionDoc//edi:work[@xml:id = $workID]/edi:concordances//edi:concordance"/>
+  
+  
   <xsl:template match="text()">
     <xsl:analyze-string select="." regex="JS\d{{4}}-\d{{2}}-\d{{2}}T\d{{2}}:\d{{2}}:\d{{2}} \[\[\[.*?\]\]\]">
       <xsl:matching-substring/>
@@ -48,7 +61,7 @@
     <xsl:element name="annot">
       <xsl:attribute name="type">criticalCommentary</xsl:attribute>
       
-      <xsl:for-each select="(//tei:table[@xml:id='Table1']/tei:row)[position()>1]"><!-- position()>1 | 56-->
+      <xsl:for-each select="(//tei:table[@xml:id='Table1']/tei:row)[position() = 2]"><!-- position()>1 | 56-->
         <xsl:variable name="no" select="tei:cell[1]"/>
         <xsl:variable name="bar_first" select="tei:cell[2]"/>
         <xsl:variable name="bar_last" select="tei:cell[3]"/>
@@ -74,6 +87,15 @@
           <xsl:attribute name="type">editorialComment</xsl:attribute>
           <xsl:attribute name="n" select="position()"/>
           <xsl:attribute name="xml:id" select="concat('opera_annot_', uuid:randomUUID())"></xsl:attribute>
+          <xsl:attribute name="plist" select="$editionConcordances[1]/@name">
+            <!--<xsl:value-of select="$editionConcordances"/>-->
+            <!--<xsl:for-each select="tokenize($sources, ', ')">
+              <xsl:value-of select="."/>
+            </xsl:for-each>-->
+          </xsl:attribute>
+          <!--<xsl:element name="test">
+            <xsl:value-of select="$editionDoc"/>
+          </xsl:element>-->
           <?TODO @plist ?>
           <xsl:element name="title">
             <!-- scene, "bar(s)? bar_first("–"bar_last)?, system -->
