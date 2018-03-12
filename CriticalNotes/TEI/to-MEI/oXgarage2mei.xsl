@@ -14,32 +14,36 @@
       <xd:p><xd:b>Created on:</xd:b> Nov 14, 2017</xd:p>
       <xd:p><xd:b>Author:</xd:b> bwb</xd:p>
       <xd:p>Postprocessing needed: check for mei:rend with trailing whitespace that should come after the closing tag</xd:p>
+      <xd:p><xd:b>Modified on:</xd:b> Mar 7, 2018</xd:p>
+      <xd:p><xd:b>Author:</xd:b> nbeer</xd:p>
+      <xd:p>Layout of CR titles; first attempts for concordanz check.</xd:p>
     </xd:desc>
   </xd:doc>
   
   <xsl:output indent="yes" omit-xml-declaration="yes"></xsl:output>
+    
+  <!-- ID of MEI work file. -->
+  <xsl:variable name="workID"></xsl:variable>
   
+  <!-- ID of EDIROM edition file. -->
+  <xsl:variable name="editionID"></xsl:variable>
   
-  <!--<annot type="criticalCommentary" xmlns="http://www.music-encoding.org/ns/mei">
-    <annot type="editorialComment" xml:id="edirom_annot_${uuid}" plist="xmldb:exist:///db/contents/edition-74338557/([Sources])">
-      <title>bla blub</title>
-      <p>test anmerkung</p><!-\- [Note] -\->
-      <ptr type="priority" target="#ediromAnnotPrio1"/>
-      <ptr type="categories" target="#ediromDefaultCategory_Articulation"/><!-\- [Category] -\->
-    </annot>
-  </annot>-->
+  <!-- If there is a prefix ('edtion-' etc.) to the edition's ID, put it here! -->
+  <xsl:variable name="editionIDPrefix"></xsl:variable>
   
-  <xsl:variable name="workID">opera_work_4fb7f9fb-12b0-4266-8da3-3c4420c2a714</xsl:variable>
-  <xsl:variable name="editionID">74338557</xsl:variable>
-  <xsl:variable name="editionIDPrefix">edition-</xsl:variable>
+  <!-- Choose your annotation ID's prefix -->
+  <xsl:variable name="annotIDPrefix">edirom_annot_</xsl:variable>
+  
+  <!-- The relative path to the edition's root content folder, seen from this xslt's folder. -->
   <xsl:variable name="basePathToEditionContents">../../../../</xsl:variable>
+  
+  <!-- Do not change from here, otherwise you know what you are doing! -->
   <xsl:variable name="pathToEditionContents">
     <xsl:value-of select="concat($basePathToEditionContents, $editionIDPrefix, $editionID)"/>
   </xsl:variable>
   <xsl:variable name="sourceDocs" select="collection(concat($pathToEditionContents, '/sources?select=*.xml'))"/>
-  <xsl:variable name="editionDoc" select="document(concat($pathToEditionContents, '/', $editionIDPrefix, $editionID, '.xml'))"/>
+  <xsl:variable name="editionDoc" select="doc(concat($pathToEditionContents, '/', $editionIDPrefix, $editionID, '.xml'))"/>
   <xsl:variable name="editionConcordances" select="$editionDoc//edi:work[@xml:id = $workID]/edi:concordances//edi:concordance"/>
-  
   
   <xsl:template match="text()">
     <xsl:analyze-string select="." regex="JS\d{{4}}-\d{{2}}-\d{{2}}T\d{{2}}:\d{{2}}:\d{{2}} \[\[\[.*?\]\]\]">
@@ -86,16 +90,22 @@
         <xsl:element name="annot">
           <xsl:attribute name="type">editorialComment</xsl:attribute>
           <xsl:attribute name="n" select="position()"/>
-          <xsl:attribute name="xml:id" select="concat('opera_annot_', uuid:randomUUID())"></xsl:attribute>
-          <xsl:attribute name="plist" select="$editionConcordances[1]/@name">
+          <xsl:attribute name="xml:id" select="concat($annotIDPrefix, uuid:randomUUID())"></xsl:attribute>
+          <xsl:attribute name="plist">
+            <xsl:variable name="actualMDIV" select="table.scene"/>
+            <xsl:variable name="actualConc" select="$editionConcordances[@name = $actualMDIV]"/>
+            <xsl:variable name="concPlistStart" select="$actualConc//edi:connection[@name = $bar_first]"/>
+            <xsl:variable name="concPlistEnd" select="$actualConc//edi:connection[@name = $bar_last]"/>
+            
+            <!-- erster Takt, letzter Takt
+                  concPlist erster Takt, concPlist zweiter Takt
+                  beteiligte Quellen aus Anotation
+                  Plist(s) nach Quellen filtern und als neue Plist ausgeben. -->
             <!--<xsl:value-of select="$editionConcordances"/>-->
             <!--<xsl:for-each select="tokenize($sources, ', ')">
               <xsl:value-of select="."/>
             </xsl:for-each>-->
           </xsl:attribute>
-          <!--<xsl:element name="test">
-            <xsl:value-of select="$editionDoc"/>
-          </xsl:element>-->
           <?TODO @plist ?>
           <xsl:element name="title">
             <!-- scene, "bar(s)? bar_first("–"bar_last)?, system -->
@@ -136,7 +146,7 @@
                   <xsl:value-of select="concat('bars ', $bar_first, '–', $bar_last, ', seg. ', $seg_first, '–', $seg_last, ', ')"/>
                 </xsl:when>
                 <!-- when anything matches, print error message: -->
-                <xsl:otherwise>Hier stimmt was nicht! Bitte die Taktangabe in der Vorlage überprüfen!</xsl:otherwise>
+                <xsl:otherwise>Something went wrong, please check the template!</xsl:otherwise>
               </xsl:choose>
             </xsl:variable>
             <xsl:value-of select="concat($scene, ', ', $titleBarOrSegIndicator, $system)"/>
@@ -165,7 +175,7 @@
                   <xsl:when test=". = 'M'">#ediromAnnotCategory_Music </xsl:when>
                   <xsl:when test=". = 'T'">#ediromAnnotCategory_Text </xsl:when>
                   <xsl:when test=". = 'S'">#ediromAnnotCategory_Stage </xsl:when>
-                  <xsl:otherwise>Hier stimmt was nicht! Bitte Vorlage überprüfen!</xsl:otherwise>
+                  <xsl:otherwise>Something went wrong, please check the template!</xsl:otherwise>
                 </xsl:choose>
               </xsl:for-each>
             </xsl:attribute>
