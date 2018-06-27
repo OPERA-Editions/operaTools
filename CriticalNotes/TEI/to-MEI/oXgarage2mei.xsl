@@ -102,7 +102,7 @@
   <xsl:variable name="sourceDocs" select="collection(concat($pathToEditionContents, '/sources?select=*.xml'))" as="document-node()*"/>
   <xsl:variable name="editionDoc" select="doc(concat($pathToEditionContents, '/', $editionIDPrefix, $editionID, '.xml'))" as="document-node()"/>
 <!--  <xsl:variable name="editionConcordances" select="$editionDoc//edi:work[@xml:id = $workID]//edi:concordances//edi:concordance"/>-->
-  <xsl:variable name="editionConcordances" select="$editionDoc//edi:work[@xml:id = $workID]//edi:concordances//edi:concordance" as="node()*"/>
+  <xsl:variable name="editionConcordances" select="$editionDoc//edi:work[@xml:id = $workID]//edi:concordances//edi:concordance[1]" as="node()*"/>
   
   
   <xd:doc>
@@ -131,7 +131,7 @@
     <xsl:element name="annot">
       <xsl:attribute name="type">criticalCommentary</xsl:attribute>
       
-      <xsl:for-each select="(//tei:table[@xml:id='Table1']/tei:row)[position() = 2 ]"><!-- position()>1 | 56-->
+      <xsl:for-each select="(//tei:table[@xml:id='Table1']/tei:row)[position() > 1 ]"><!-- position()>1 | 56-->
         <xsl:variable name="no" select="tei:cell[1]" as="xs:string"/>
         
         <!-- Taktangaben -->
@@ -139,17 +139,17 @@
         <xsl:variable name="bar_last" select="normalize-space(tei:cell[3])" as="xs:string"/>
         
         <!-- Szene -->
-        <xsl:variable name="table.scene" select="tei:cell[4]" as="xs:string"/>
+        <xsl:variable name="table.scene" select="normalize-space(tei:cell[4])" as="xs:string"/>
         
         <!-- Segmentangaben -->
-        <xsl:variable name="seg_first" select="tei:cell[5]" as="xs:string"/>
-        <xsl:variable name="seg_last" select="tei:cell[6]" as="xs:string"/>
+        <xsl:variable name="seg_first" select="normalize-space(tei:cell[5])" as="xs:string"/>
+        <xsl:variable name="seg_last" select="normalize-space(tei:cell[6])" as="xs:string"/>
         
         <!-- Spottitel -->
-        <xsl:variable name="spotTitle" select="tei:cell[7]" as="xs:string"/>
+        <xsl:variable name="spotTitle" select="normalize-space(tei:cell[7])" as="xs:string"/>
         
         <!-- Stimmen -->
-        <xsl:variable name="system" select="tei:cell[8]" as="xs:string"/>
+        <xsl:variable name="system" select="normalize-space(tei:cell[8])" as="xs:string"/>
         <xsl:variable name="systemT" select="tokenize($system, ', ')"/>
         <xsl:variable name="parts" as="item()*">
           <xsl:for-each select="$systemT">
@@ -225,8 +225,8 @@
         </xsl:variable>
         
         <xsl:variable name="sources" select="tei:cell[9]" as="xs:string"/>
-        <xsl:variable name="spots" select="tei:cell[10]" as="xs:string"/>
-        <xsl:variable name="category" select="tei:cell[11]" as="xs:string"/>
+        <xsl:variable name="spots" select="normalize-space(tei:cell[10])" as="xs:string"/>
+        <xsl:variable name="category" select="normalize-space(tei:cell[11])" as="xs:string"/>
         <xsl:variable name="note" select="tei:cell[12]"/>
         
         <!-- Wird das hier überhaupt benötigt? -->
@@ -256,22 +256,23 @@
                   <xsl:variable name="spotT" select="tokenize(., ', ')"/>
                   <xsl:variable name="spotSurfaceID" select="$spotT[2]"/>
                   <xsl:variable name="spotSurfaceSourceDocURI" select="document-uri($sourceDocs[//mei:mei//mei:surface[@xml:id = $spotSurfaceID]])"/>
-                  <xsl:variable name="spotID" select="concat('opera_zone_', $editionID, '_', $spotT[3])"/>
-                  <xsl:variable name="spotParticipantURI" select="concat('xmldb:exist:///db/contents/', substring-after($spotSurfaceSourceDocURI, 'OPERA-Edition/'), '#', $spotID)"/>
+                  <xsl:variable name="spotID" select="concat('opera_zone_edition-', $editionID, '_', $spotT[3])"/>
+                  <xsl:variable name="spotParticipantURI" select="concat('xmldb:exist:///db/contents/', substring-after($spotSurfaceSourceDocURI, 'OPERA-Edition/'), '#', $spotID, ' ')"/>
                   <xsl:value-of select="$spotParticipantURI"/>
                 </xsl:for-each>                
                 <!-- ToDo -->
               </xsl:when>
               
-              <!-- Ist es eine taktbasierte Anmerkung? -->
+              <!-- Ist es eine takt- und/oder seg-basierte Anmerkung? -->
               <xsl:when test="$bar_first != ''">
                 
                 <!-- Wie heißt der zugehörige mdiv? -->
                 <xsl:variable name="actualMDIV" select="normalize-space($table.scene)" as="xs:string"/>
                 <!-- Die gesuchte Konkordanz: -->
-                <xsl:variable name="actualConc" select="$editionConcordances[@name = $actualMDIV]" as="element()"/>
+<!--                <xsl:variable name="actualConc" select="$editionConcordances[@name = $actualMDIV]" as="element()"/>-->
+                <xsl:variable name="actualConcGroup" select="$editionConcordances//edi:group[@name = $actualMDIV]" as="element()"/>
                 <!-- Teilnehmer der Startangabe -->
-                <xsl:variable name="concConnectionStart" as="element()">
+                <!--<xsl:variable name="concConnectionStart" as="element()">
                   <xsl:choose>
                     <xsl:when test="$actualConc//edi:group">
                       <xsl:copy-of select="$actualConc//edi:group[@name = 'Navigation by bar']//edi:connection[@name = $bar_first]"/>
@@ -280,7 +281,9 @@
                       <xsl:copy-of select="$actualConc//edi:connection[@name = $bar_first]"/>
                     </xsl:otherwise>
                   </xsl:choose>
-                </xsl:variable>
+                </xsl:variable>-->
+                <xsl:variable name="concConnectionStart" select="$actualConcGroup//edi:connection[@name = $bar_first]" as="element()"/>
+                
                 <xsl:variable name="concPlistStart" select="$concConnectionStart/@plist"/>
                 <xsl:variable name="concPlistStartT" select="tokenize($concPlistStart,' ')"/>
                 
@@ -396,14 +399,21 @@
                     <!-- Taktstrecken -->
                     <xsl:when test="number($bar_last) > number($bar_first)">
                       
-                      <xsl:variable name="annotConcConnectionStart" select="$actualConc//edi:group[@name = 'Navigation by bar']//edi:connection[@name = $bar_first] | $actualConc//edi:connection[@name = $bar_first]" as="node()"/>
+                      <!--<xsl:variable name="annotConcConnectionStart" select="$actualConc//edi:group[@name = 'Navigation by bar']//edi:connection[@name = $bar_first] | $actualConc//edi:connection[@name = $bar_first]" as="node()"/>-->
+                      <xsl:variable name="annotConcConnectionStart" select="$actualConcGroup//edi:connection[@name = $bar_first]" as="node()"/>
                       <xsl:variable name="annotConcConnectionStartPos" select="count($annotConcConnectionStart/preceding-sibling::*)+1."/>
                       
-                      <xsl:variable name="annotConcConnectionEnd" select="$actualConc//edi:group[@name = 'Navigation by bar']//edi:connection[@name = $bar_last] | $actualConc//edi:connection[@name = $bar_last]"/>
+                      <!--<xsl:variable name="annotConcConnectionEnd" select="$actualConc//edi:group[@name = 'Navigation by bar']//edi:connection[@name = $bar_last] | $actualConc//edi:connection[@name = $bar_last]"/>-->
+                      <xsl:variable name="annotConcConnectionEnd" select="$actualConcGroup//edi:connection[@name = $bar_last]"/>
                       <xsl:variable name="annotConcConnectionEndPos" select="count($annotConcConnectionEnd/preceding-sibling::*)+1."/>
                       
-                      <xsl:variable name="concPlistsJoined" as="attribute()*">
+                      <!--<xsl:variable name="concPlistsJoined" as="attribute()*">
                         <xsl:for-each select="$actualConc//edi:connection[count(./preceding-sibling::*)+1. &gt;= $annotConcConnectionStartPos and count(./preceding-sibling::*)+1. &lt;= $annotConcConnectionEndPos]">
+                          <xsl:copy-of select="./@plist"/>
+                        </xsl:for-each>
+                      </xsl:variable>-->
+                      <xsl:variable name="concPlistsJoined" as="attribute()*">
+                        <xsl:for-each select="$actualConcGroup//edi:connection[count(./preceding-sibling::*)+1. &gt;= $annotConcConnectionStartPos and count(./preceding-sibling::*)+1. &lt;= $annotConcConnectionEndPos]">
                           <xsl:copy-of select="./@plist"/>
                         </xsl:for-each>
                       </xsl:variable>
@@ -414,97 +424,97 @@
                         <xsl:variable name="sourceSearch" select="."/>
                         <xsl:for-each select="$concPlistsJoinedT">
                           
-                          <!-- URI des aktuellen Konkordanzteilnehmers -->
-                          <xsl:variable name="concPlistsJoinedTMemberSearch" select="."/>
+                            <!-- URI des aktuellen Konkordanzteilnehmers -->
+                            <xsl:variable name="concPlistsJoinedTMemberSearch" select="."/>
                           
-                          <!-- Siglum des aktuellen Konkordanzteilnehmers-->
-      8                    <xsl:variable name="concPlistsJoinedTMemberSearchSiglum" select="doc(concat($pathToEditionContents, '/', substring-after(substring-before($concPlistsJoinedTMemberSearch, '#'), concat($editionIDPrefix, $editionID, '/')), '/'))/mei:mei//mei:identifier[@type = 'siglum']/text()" as="xs:string"/>
+                            <!-- Siglum des aktuellen Konkordanzteilnehmers-->
+                          <xsl:variable name="concPlistsJoinedTMemberSearchSiglum" select="doc(concat($pathToEditionContents, '/', substring-after(substring-before($concPlistsJoinedTMemberSearch, '#'), concat($editionIDPrefix, $editionID, '/')), '/'))/mei:mei//mei:identifier[@type = 'siglum']/text() | doc(concat($pathToEditionContents, '/', substring-after(substring-before($concPlistsJoinedTMemberSearch, '#'), concat($editionIDPrefix, $editionID, '/')), '/'))/tei:TEI//tei:altIdentifier/tei:idno/text()" as="xs:string"/>
                           
-                          <xsl:choose>
-                            
-                            <!-- Ist referenziertes Siglum = Siglum des Konkordanzteilnehmers? -->
-                            <xsl:when test="$concPlistsJoinedTMemberSearchSiglum = $sourceSearch">
+                            <xsl:choose>
                               
-                              <!-- Sind hier Stimmentakte oder (nur) Partiturtakte referenziert? -->
-                              <xsl:choose>
-                                <!-- Textsegmente sollen erstmal ignoriert werden -->
-                                <xsl:when test="contains($concPlistsJoinedTMemberSearch, '_seg')"/>
+                              <!-- Ist referenziertes Siglum = Siglum des Konkordanzteilnehmers? -->
+                              <xsl:when test="$concPlistsJoinedTMemberSearchSiglum = $sourceSearch">
                                 
-                                <!-- Sind hier Stimmen referenziert? Dann mdiv, Taktnummern, Stimme(n) und Quelle identifizieren -->
-                                <xsl:when test="contains($concPlistsJoinedTMemberSearch, 'measure_edirom_mdiv_')">
+                                <!-- Sind hier Stimmentakte oder (nur) Partiturtakte referenziert? -->
+                                <xsl:choose>
+                                  <!-- Textsegmente sollen erstmal ignoriert werden -->
+                                  <xsl:when test="contains($concPlistsJoinedTMemberSearch, '_seg')"/>
                                   
-                                  <!-- mdivID -->
-                                  <xsl:variable name="mdivID" select="functx:substring-before-last(substring-after($concPlistsJoinedTMemberSearch, '#measure_'), '_')"/>
-                                  
-                                  <!-- Taktnummern -->
-                                  <xsl:variable name="mdivIdMeasureNo" select="functx:substring-after-last($concPlistsJoinedTMemberSearch, '_')"/>
-                                  
-                                  <!-- Stimme(n) -->
-                                  <!-- siehe $parts weiter oben -->
-                                  
-                                  <!-- lokaler Pfad zur Quellen-Datei -->
-                                  <xsl:variable name="localSourceDoc" select="doc(concat($basePathToEditionContents, substring-before(substring-after($concPlistsJoinedTMemberSearch, '/contents/'), '#'), ' '))" as="document-node()"/>
-                                  
-                                  <!-- der gesuchte mdiv -->
-                                  <xsl:variable name="sourceDocMdiv" select="$localSourceDoc/mei:mei//mei:mdiv[@xml:id = $mdivID]" as="node()"/>
-                                  
-                                  <!-- alle parts in diesem mdiv -->
-                                  <xsl:variable name="sourceDocMdivParts" select="$sourceDocMdiv//mei:part"/>
-                                  
-                                  <!-- alle gesuchten Takte in allen benötigten parts -->
-                                  <xsl:variable name="sourceDocMdivPartsMeasureParticipants">
-                                    <xsl:for-each select="$parts">
-                                      <xsl:variable name="part" select="."/>
-                                      <!-- alle Takt-IDs in diesem part, die die entsprechende Taktnummer haben -->
-                                      <xsl:variable name="measureIDs" select="$sourceDocMdivParts[@label = $part]//mei:measure[@n = $mdivIdMeasureNo]/@xml:id"/>
-                                      <!-- participant uris für @plist -->
-                                      <xsl:variable name="measureParticipants">
-                                        <xsl:for-each select="$measureIDs">
-                                          <xsl:variable name="measureID" select="."/>
-                                          <xsl:value-of select="concat(substring-before($concPlistsJoinedTMemberSearch, '#'), '#', $measureID, ' ')"/>
-                                        </xsl:for-each>
-                                      </xsl:variable>
-                                      <xsl:value-of select="$measureParticipants"/>
-                                    </xsl:for-each>
+                                  <!-- Sind hier Stimmen referenziert? Dann mdiv, Taktnummern, Stimme(n) und Quelle identifizieren -->
+                                  <xsl:when test="contains($concPlistsJoinedTMemberSearch, 'measure_edirom_mdiv_')">
                                     
-                                  </xsl:variable>
-                                  <!-- hier kommt dieser Teil der @plist -->
-                                  <xsl:value-of select="$sourceDocMdivPartsMeasureParticipants"/>
-                                </xsl:when>
-                                
-                                <!-- … wenn es nur normale Takte sind … -->
-                                <xsl:otherwise>
-                                  <xsl:choose>
+                                    <!-- mdivID -->
+                                    <xsl:variable name="mdivID" select="functx:substring-before-last(substring-after($concPlistsJoinedTMemberSearch, '#measure_'), '_')"/>
                                     
-                                    <!-- Umbrochener Takt? -->
-                                    <xsl:when test="contains($concPlistsJoinedTMemberSearch, '?tstamp2')">
-                                      
-                                      <!-- URI der ersten Takthälfte -->
-                                      <xsl:variable name="actualMeasureURI" select="substring-before($concPlistsJoinedTMemberSearch, '?tstamp2')"/>
-                                      
-                                      <!-- ID der ersten Takthälfte -->
-                                      <xsl:variable name="actualMeasureID" select="substring-after($actualMeasureURI, '#')"/>
-                                      <!-- Wir gehen davon aus, dass ein Takt nur einmal umbrochen ist und die zweite Hälfte im mei direkt nach der ersten Hälfte verzeichnet ist. -->
-                                      <!-- ID der zweiten Takthälfte im Quellendokument (direkt nach der ersten Takthälfte) -->
-                                      <xsl:variable name="nextMeasureID" select="doc(concat($basePathToEditionContents, substring-before(substring-after($concPlistsJoinedTMemberSearch, '/contents/'), '#'), ' '))//mei:measure[@xml:id = $actualMeasureID]/following-sibling::mei:measure[1]/@xml:id"/>
-                                      
-                                      <!-- URI der zweiten Takthälfte -->
-                                      <xsl:variable name="nextMeasureURI" select="concat(substring-before($actualMeasureURI, '#'), '#', $nextMeasureID)"/>
-                                      
-                                      <!-- … und die beidenURIs für die @plist -->
-                                      <xsl:value-of select="concat($actualMeasureURI, ' ', $nextMeasureURI, ' ')"/>
-                                    </xsl:when>
+                                    <!-- Taktnummern -->
+                                    <xsl:variable name="mdivIdMeasureNo" select="functx:substring-after-last($concPlistsJoinedTMemberSearch, '_')"/>
                                     
-                                    <!-- Ansonsten normal… -->
-                                    <xsl:otherwise>
-                                      <xsl:value-of select="concat($concPlistsJoinedTMemberSearch, ' ')"/>
-                                    </xsl:otherwise>
-                                  </xsl:choose>
-                                </xsl:otherwise>
-                              </xsl:choose>
-                            </xsl:when>
-                            <xsl:otherwise/>
-                          </xsl:choose>
+                                    <!-- Stimme(n) -->
+                                    <!-- siehe $parts weiter oben -->
+                                    
+                                    <!-- lokaler Pfad zur Quellen-Datei -->
+                                    <xsl:variable name="localSourceDoc" select="doc(concat($basePathToEditionContents, substring-before(substring-after($concPlistsJoinedTMemberSearch, '/contents/'), '#'), ' '))" as="document-node()"/>
+                                    
+                                    <!-- der gesuchte mdiv -->
+                                    <xsl:variable name="sourceDocMdiv" select="$localSourceDoc/mei:mei//mei:mdiv[@xml:id = $mdivID]" as="node()"/>
+                                    
+                                    <!-- alle parts in diesem mdiv -->
+                                    <xsl:variable name="sourceDocMdivParts" select="$sourceDocMdiv//mei:part"/>
+                                    
+                                    <!-- alle gesuchten Takte in allen benötigten parts -->
+                                    <xsl:variable name="sourceDocMdivPartsMeasureParticipants">
+                                      <xsl:for-each select="$parts">
+                                        <xsl:variable name="part" select="."/>
+                                        <!-- alle Takt-IDs in diesem part, die die entsprechende Taktnummer haben -->
+                                        <xsl:variable name="measureIDs" select="$sourceDocMdivParts[@label = $part]//mei:measure[@n = $mdivIdMeasureNo]/@xml:id"/>
+                                        <!-- participant uris für @plist -->
+                                        <xsl:variable name="measureParticipants">
+                                          <xsl:for-each select="$measureIDs">
+                                            <xsl:variable name="measureID" select="."/>
+                                            <xsl:value-of select="concat(substring-before($concPlistsJoinedTMemberSearch, '#'), '#', $measureID, ' ')"/>
+                                          </xsl:for-each>
+                                        </xsl:variable>
+                                        <xsl:value-of select="$measureParticipants"/>
+                                      </xsl:for-each>
+                                      
+                                    </xsl:variable>
+                                    <!-- hier kommt dieser Teil der @plist -->
+                                    <xsl:value-of select="$sourceDocMdivPartsMeasureParticipants"/>
+                                  </xsl:when>
+                                  
+                                  <!-- … wenn es nur normale Takte sind … -->
+                                  <xsl:otherwise>
+                                    <xsl:choose>
+                                      
+                                      <!-- Umbrochener Takt? -->
+                                      <xsl:when test="contains($concPlistsJoinedTMemberSearch, '?tstamp2')">
+                                        
+                                        <!-- URI der ersten Takthälfte -->
+                                        <xsl:variable name="actualMeasureURI" select="substring-before($concPlistsJoinedTMemberSearch, '?tstamp2')"/>
+                                        
+                                        <!-- ID der ersten Takthälfte -->
+                                        <xsl:variable name="actualMeasureID" select="substring-after($actualMeasureURI, '#')"/>
+                                        <!-- Wir gehen davon aus, dass ein Takt nur einmal umbrochen ist und die zweite Hälfte im mei direkt nach der ersten Hälfte verzeichnet ist. -->
+                                        <!-- ID der zweiten Takthälfte im Quellendokument (direkt nach der ersten Takthälfte) -->
+                                        <xsl:variable name="nextMeasureID" select="doc(concat($basePathToEditionContents, substring-before(substring-after($concPlistsJoinedTMemberSearch, '/contents/'), '#'), ' '))//mei:measure[@xml:id = $actualMeasureID]/following-sibling::mei:measure[1]/@xml:id"/>
+                                        
+                                        <!-- URI der zweiten Takthälfte -->
+                                        <xsl:variable name="nextMeasureURI" select="concat(substring-before($actualMeasureURI, '#'), '#', $nextMeasureID)"/>
+                                        
+                                        <!-- … und die beidenURIs für die @plist -->
+                                        <xsl:value-of select="concat($actualMeasureURI, ' ', $nextMeasureURI, ' ')"/>
+                                      </xsl:when>
+                                      
+                                      <!-- Ansonsten normal… -->
+                                      <xsl:otherwise>
+                                        <xsl:value-of select="concat($concPlistsJoinedTMemberSearch, ' ')"/>
+                                      </xsl:otherwise>
+                                    </xsl:choose>
+                                  </xsl:otherwise>
+                                </xsl:choose>
+                              </xsl:when>
+                              <xsl:otherwise/>
+                            </xsl:choose>
                         </xsl:for-each>
                       </xsl:for-each>
                     </xsl:when>
