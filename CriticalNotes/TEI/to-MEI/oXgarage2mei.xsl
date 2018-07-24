@@ -131,7 +131,7 @@
     <xsl:element name="annot">
       <xsl:attribute name="type">criticalCommentary</xsl:attribute>
       
-      <xsl:for-each select="(//tei:table[@xml:id='Table1']/tei:row)[position() > 1 ]"><!-- position()>1 | 56-->
+      <xsl:for-each select="(//tei:table[@xml:id='Table1']/tei:row)[position() = 100 ]"><!-- position()>1 | 56-->
         <xsl:variable name="no" select="tei:cell[1]" as="xs:string"/>
         
         <!-- Taktangaben -->
@@ -230,7 +230,7 @@
         <xsl:variable name="note" select="tei:cell[12]"/>
         
         <!-- Wird das hier überhaupt benötigt? -->
-        <xsl:variable name="scene" as="xs:string">
+        <!--<xsl:variable name="scene" as="xs:string">
           <xsl:choose>
             <xsl:when test="$table.scene = 'Eingang'"><?TODO ggf anderer begriff ?>
               <xsl:value-of select="$table.scene"/>
@@ -239,7 +239,7 @@
               <xsl:value-of select="'Scene ' || $table.scene"/>
             </xsl:otherwise>
           </xsl:choose>
-        </xsl:variable>
+        </xsl:variable>-->
         
         <xsl:element name="annot">
           <xsl:attribute name="type">editorialComment</xsl:attribute>
@@ -263,8 +263,8 @@
                 <!-- ToDo -->
               </xsl:when>
               
-              <!-- Ist es eine takt- und/oder seg-basierte Anmerkung? -->
-              <xsl:when test="$bar_first != ''">
+              <!-- Ist es eine takt- oder seg-basierte Anmerkung? -->
+              <xsl:when test="$bar_first != '' or $seg_first != ''">
                 
                 <!-- Wie heißt der zugehörige mdiv? -->
                 <xsl:variable name="actualMDIV" select="normalize-space($table.scene)" as="xs:string"/>
@@ -282,7 +282,7 @@
                     </xsl:otherwise>
                   </xsl:choose>
                 </xsl:variable>-->
-                <xsl:variable name="concConnectionStart" select="$actualConcGroup//edi:connection[@name = $bar_first]" as="element()"/>
+                <xsl:variable name="concConnectionStart" select="$actualConcGroup//edi:connection[@name = $bar_first] | $actualConcGroup//edi:connection[@name = concat('seg ', $seg_first)]" as="element()"/>
                 
                 <xsl:variable name="concPlistStart" select="$concConnectionStart/@plist"/>
                 <xsl:variable name="concPlistStartT" select="tokenize($concPlistStart,' ')"/>
@@ -306,8 +306,7 @@
                           <xsl:variable name="concPlistStartTMemberSearch" select="."/>
                           
                           <!-- Siglum des aktuellen Konkordanzteilnehmers-->
-                          <xsl:variable name="concPlistStartTMemberSearchSiglum" select="doc(concat($pathToEditionContents, '/', substring-after(substring-before($concPlistStartTMemberSearch, '#'), concat($editionIDPrefix, $editionID, '/')), '/'))/mei:mei//mei:identifier[@type = 'siglum']/text()" as="xs:string"/>
-                          
+                          <xsl:variable name="concPlistStartTMemberSearchSiglum" select="doc(concat($pathToEditionContents, '/', substring-after(substring-before($concPlistStartTMemberSearch, '#'), concat($editionIDPrefix, $editionID, '/')), '/'))/mei:mei//mei:identifier[@type = 'siglum']/text() | doc(concat($pathToEditionContents, '/', substring-after(substring-before($concPlistStartTMemberSearch, '#'), concat($editionIDPrefix, $editionID, '/')), '/'))/tei:TEI//tei:altIdentifier/tei:idno" as="xs:string"/>
                           <xsl:choose>
                             
                             <!-- Ist referenziertes Siglum = Siglum des Konkordanzteilnehmers? -->
@@ -315,7 +314,9 @@
                               <xsl:choose>
                                 
                                 <!-- Textsegmente sollen erstmal ignoriert werden -->
-                                <xsl:when test="contains($concPlistStartTMemberSearch, '_seg')"/>
+                                <xsl:when test="contains($concPlistStartTMemberSearch, 'seg_')">
+                                  <xsl:text>HALLO!</xsl:text>
+                                </xsl:when>
                                 
                                 <!-- Sind hier Stimmen referenziert? Dann mdiv, Taktnummern, Stimme(n) und Quelle identifizieren -->
                                 <xsl:when test="contains($concPlistStartTMemberSearch, 'measure_edirom_mdiv_')">
@@ -519,7 +520,14 @@
                       </xsl:for-each>
                     </xsl:when>
                 
-                    <xsl:otherwise/>
+                    <!-- Textsegmente -->
+                    <xsl:when test="$bar_first = '' and $bar_last = '' and $seg_first != '' and $seg_last = ''">
+                      <xsl:value-of select="$bar_first"/>
+                    </xsl:when>
+                    
+                    <xsl:otherwise>
+                      <xsl:value-of select="'nix'"/>
+                    </xsl:otherwise>
                 
                   </xsl:choose>
               </xsl:when>
@@ -538,15 +546,15 @@
                 <!-- no bars, no segs., so leave empty… -->
                 <xsl:when test="$bar_first = '' and $bar_last = '' and $seg_first = '' and $seg_last = ''">Hier passt etwas nicht. Bitte prüfen!</xsl:when>
                 <xsl:when test="$bar_first = '' and $bar_last = '' and $seg_first != '' and $seg_last = ''">
-                  <xsl:value-of select="concat('seg. ', $seg_first, ', ')"/>
+                  <xsl:value-of select="concat('seg ', $seg_first, ', ')"/>
                 </xsl:when>
                 <!-- no bars, different segs. -->
                 <xsl:when test="$bar_first = '' and $bar_last = '' and $seg_first != $seg_last">
-                  <xsl:value-of select="concat('seg. ', $seg_first, '–', $seg_last, ', ')"/>
+                  <xsl:value-of select="concat('seg ', $seg_first, '–', $seg_last, ', ')"/>
                 </xsl:when>
                 <!-- no bars, same segs. -->
                 <xsl:when test="$bar_first = '' and $bar_last = '' and $seg_first = $seg_last">
-                  <xsl:value-of select="concat('seg. ', $seg_first, ', ')"/>
+                  <xsl:value-of select="concat('seg ', $seg_first, ', ')"/>
                 </xsl:when>
                 <!-- only first bar -->
                 <xsl:when test="$bar_first != '' and $bar_last = ''">
@@ -554,7 +562,7 @@
                 </xsl:when>
                 <!-- only first bar and first seg. -->
                 <xsl:when test="$bar_first != '' and $bar_last = '' and $seg_first != '' and $seg_last = ''">
-                  <xsl:value-of select="concat('bar ', $bar_first, ', seg. ', $seg_first)"/>
+                  <xsl:value-of select="concat('bar ', $bar_first, ', seg ', $seg_first)"/>
                 </xsl:when>
                 <!-- same bars -->
                 <xsl:when test="$bar_last = $bar_first">
@@ -566,7 +574,7 @@
                 </xsl:when>
                 <!-- different bars, different segs.-->
                 <xsl:when test="$bar_first != $bar_last and $seg_first != $seg_last">
-                  <xsl:value-of select="concat('bars ', $bar_first, '–', $bar_last, ', seg. ', $seg_first, '–', $seg_last, ', ')"/>
+                  <xsl:value-of select="concat('bars ', $bar_first, '–', $bar_last, ', seg ', $seg_first, '–', $seg_last, ', ')"/>
                 </xsl:when>
                 <!-- when anything matches, print error message: -->
                 <xsl:otherwise>Something went wrong, please check the template!</xsl:otherwise>
@@ -585,10 +593,10 @@
             </xsl:otherwise>
           </xsl:choose>
           <!-- OPERA: only one priority …-->
-          <!--<xsl:element name="ptr">
+          <xsl:element name="ptr">
             <xsl:attribute name="type">priority</xsl:attribute>
             <xsl:attribute name="target">#ediromAnnotPrio1</xsl:attribute>
-          </xsl:element>-->
+          </xsl:element>
           <!-- … but 1-3 categories -->
           <xsl:element name="ptr">
             <xsl:attribute name="type">categories</xsl:attribute>
@@ -627,7 +635,7 @@
     <xsl:choose><?TODO italic+sup ?>
       <xsl:when test="contains(@rend,'italic')">
         <xsl:element name="rend">
-          <xsl:attribute name="rend" select="'italic'"/>
+          <xsl:attribute name="fontstyle" select="'italic'"/>
             <xsl:apply-templates/>
         </xsl:element>
       </xsl:when>
