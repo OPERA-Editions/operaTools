@@ -33,6 +33,7 @@ declare option saxon:output "indent=yes";
         - Generating concordance from list of sources.
             Value: 'sourcesList'
 :)
+
 let $ediConcType := 'sourceCollection'
 
 (:  If value of $ediConcType is 'sourceList', please
@@ -50,8 +51,14 @@ let $workID := 'opera_work_4fb7f9fb-12b0-4266-8da3-3c4420c2a714'
 (:  ID(s) of reference source(s). Mostly the edition(s). :)
 let $referenceSourceIDs := ('opera_edition_730ca1ed-05fb-4642-8159-d41aa1ec810e', 'TextEdition_Gotha')
 
-(:  Base path string to the edition's contents :)
-let $contentsBasePathString := '/Users/niko/Repos/OPERA-Edition/'
+(:  Base path string to the edition's contents relatively to this xquery :)
+let $contentsBasePathString := '../../'
+
+
+
+(: ************************** :)
+(: ************************** :)
+
 
 
 (:  DO NOT CHANGE FROM HERE!! :)
