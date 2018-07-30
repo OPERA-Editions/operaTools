@@ -176,15 +176,69 @@ let $concordances :=    element concordances {
                                                 attribute name {$divName},
                                                     element connections {
                                                     attribute label {if ($refSourceDoc/tei:TEI)
-                                                                        then ('Text segment')
+                                                                        then (
+                                                                            if ($divName = 'Zweyter Auftritt')
+                                                                            then ('-')
+                                                                            else ('Text segment')
+                                                                            )
                                                                         else if ($refSourceDoc/mei:mei)
-                                                                        then ('Bar/Text segment')
-                                                                        else ('empty')
+                                                                        then (
+                                                                            if ($divName = 'Zweyter Auftritt')
+                                                                            then ('Bar')
+                                                                            else ('Bar/Text segment')
+                                                                            )
+                                                                        else ('Please check connections label!')
                                                                         },
-                                                        for $divSection in distinct-values($divSections/@n)
+                                                                        let $divSectionsN :=    for $divSectionN in $divSections/@n
+                                                                                                    let $n :=   if (
+                                                                                                                    matches($divSectionN, '-')
+                                                                                                                )
+                                                                                                                then (
+                                                                                                                    if (starts-with($divSectionN, 'seg_'))
+                                                                                                                    then (
+                                                                                                                        let $nStart := substring-before(substring-after($divSectionN, 'seg_'), '-')
+                                                                                                                        let $nStartSuffix := functx:get-matches($nStart, '[a-z]')
+                                                                                                                        let $nStartNo := functx:substring-before-match($nStart, '[a-z]')
+                                                                                                                        let $nEnd := substring-after($divSectionN, '-')
+                                                                                                                        let $nEndSuffix := functx:get-matches($nEnd, '[a-z]{1}')
+                                                                                                                        let $nEndNo := xs:integer(functx:substring-before-match($nEnd, '[a-z]'))
+                                                                                                                        for $i at $pos in (xs:integer($nStartNo) to $nEndNo)
+                                                                                                                            let $segNo := xs:string(xs:integer($nStartNo) + $pos - 1)
+                                                                                                                            (: Das funktioniert nur mit folgender Funktion. Ich weiß aber nicht WARUM!!??
+                                                                                                                            Wollte das eigentlich im return-Stmt in der concat-Funktion machen. Dort immer
+                                                                                                                            Fehlermeldung, dass $nStartSuffix "" UND "a" findet?
+                                                                                                                            ACHTUNG: Das funktioniert nur, wenn auf Buchstabenebene nicht auch noch gezählt wird!!!:)
+                                                                                                                            let $suffix := string-join($nStartSuffix)
+                                                                                                                            return
+                                                                                                                                concat('seg_', $segNo, $suffix)
+                                                                                                                            
+                                                                                                                    )
+                                                                                                                    else (
+                                                                                                                        let $nStart := xs:integer(substring-before($divSectionN, '-'))
+                                                                                                                        let $nEnd := xs:integer(substring-after($divSectionN, '-'))
+                                                                                                                        let $x := for $i at $pos in ($nStart to $nEnd)
+                                                                                                                                    return
+                                                                                                                                        $nStart + $pos - 1
+                                                                                                                            return
+                                                                                                                                $x
+                                                                                                                    )
+                                                                                                                )
+                                                                                                                else (
+                                                                                                                    $divSectionN
+                                                                                                                )
+                                                                                                        return
+                                                                                                            $n
+                                                        return
+                                                            if ($refSourceDoc/tei:TEI and $divName = 'Zweyter Auftritt')
+                                                                then (element connection {
+                                                                        attribute name {'[music only]'}
+                                                                        }
+                                                                    )
+                                                            else (
+                                                        for $divSection in distinct-values($divSectionsN)
                                                         return
                                                             element connection {
-                                                            attribute name {$divSection},
+                                                            attribute name {if (contains($divSection, '_')) then (replace($divSection, '_', ' ')) else ($divSection)},
                                                             attribute plist {
                                                                 if ($refSourceDoc/tei:TEI)
                                                                 then (
@@ -193,9 +247,10 @@ let $concordances :=    element concordances {
                                                                         let $sourceID := $ediConcSource/*/@xml:id/string()
                                                                         let $participant := if ($ediConcSource/tei:TEI)
                                                                                             then (
-                                                                                                let $sourceSegs2Conc := $ediConcSource//tei:seg[@n/string() = $divSection and .//ancestor::tei:div/tei:head[. = $divName]]
+                                                                                                let $sourceSegs2Conc := $ediConcSource//*[local-name() = 'seg' or local-name() = 'l'][@n = $divSection][.//ancestor::tei:div/tei:head[. = $divName]]
                                                                                                 return
-                                                                                                    concat($connectionPlistPrefix, 'texts/', $sourceID, '.xml#', $sourceSegs2Conc[1]/@xml:id/string())
+                                                                                                    if ($sourceSegs2Conc != '') then (concat($connectionPlistPrefix, 'texts/', $sourceID, '.xml#', $sourceSegs2Conc[1]/@xml:id/string())) else ()
+                                                                                                    (:concat($connectionPlistPrefix, 'texts/', $sourceID, '.xml#', $sourceSegs2Conc[1]/@xml:id/string()):)
                                                                                             )
                                                                                             else if ($ediConcSource/mei:mei)
                                                                                             then (
@@ -206,9 +261,7 @@ let $concordances :=    element concordances {
                                                                                                 else (
                                                                                                     let $sourceMeasures2Conc := $ediConcSource//mei:measure[(
                                                                                                         if (starts-with(./@n/string(), 'seg_') and matches(./@n/string(), '-'))
-                                                                                                        then(
-                                                                                                            number(substring-before(substring-after(./@n/string(), 'seg_'), '-')) <= number($divSection) and number(substring-after(substring-after(./@n/string(), 'seg_'), '-')) >= number($divSection)
-                                                                                                            )
+                                                                                                        then(number(substring-before(substring-after(./@n/string(), 'seg_'), '-')) <= number($divSection) and number(substring-after(substring-after(./@n/string(), 'seg_'), '-')) >= number($divSection))
                                                                                                         else if (starts-with(./@n/string(), 'seg_') and not(matches(./@n/string(), '-')))
                                                                                                         then (number(substring-after(./@n/string(), 'seg_')) = number($divSection))
                                                                                                         else ()
@@ -241,33 +294,21 @@ let $concordances :=    element concordances {
                                                                     let $ediConcSourcesCollectionFiltered := $ediConcSourcesCollection[not(matches(./*/@xml:id/string(), 'TextEdition'))][not(matches(./*/@xml:id/string(), 'opera_source_medea_T'))]
                                                                     for $ediConcSource in $ediConcSourcesCollectionFiltered
                                                                         let $sourceID := $ediConcSource/*/@xml:id/string()
-                                                                        let $participant := if ($refSourceDoc/tei:TEI)
-                                                                                            then ()
-                                                                                            else if ($refSourceDoc/mei:mei)
-                                                                                            then (
-                                                                                                if (
-                                                                                                    $ediConcSource//mei:parts
-                                                                                                )
-                                                                                                then (
-                                                                                                    concat($connectionPlistPrefix, 'sources/', $sourceID, '.xml#', 'measure_', $ediConcSource//mei:mdiv[@label = $divName]/@xml:id/string(), '_', $divSection)
-                                                                                                )
-                                                                                                else (
-                                                                                                    let $sourceMeasures2Conc := $ediConcSource//mei:measure[@n = $divSection and .//ancestor::mei:mdiv[@label = $divName]]
-                                                                                                    let $sourceMeasures2ConcCount := count($sourceMeasures2Conc)
-                                                                                                    return
-                                                                                                        if (
-                                                                                                            $sourceMeasures2ConcCount > 1
-                                                                                                        )
-                                                                                                        then (
-                                                                                                            concat($connectionPlistPrefix, 'sources/', $sourceID, '.xml#', $sourceMeasures2Conc[1]/@xml:id/string(), '?tstamp2=', $sourceMeasures2ConcCount - 1, 'm+0')
-                                                                                                        )
-                                                                                                        else (
-                                                                                                            concat($connectionPlistPrefix, 'sources/', $sourceID, '.xml#', $sourceMeasures2Conc[1]/@xml:id/string())
-                                                                                                        )
-                                                                                                )
+                                                                        let $participant := if ($ediConcSource//mei:parts)
+                                                                                            then (concat($connectionPlistPrefix, 'sources/', $sourceID, '.xml#', 'measure_', $ediConcSource//mei:mdiv[@label = $divName]/@xml:id/string(), '_', $divSection))
+                                                                                            else (
+                                                                                                let $sourceMeasures2Conc := $ediConcSource//mei:measure[(
+                                                                                                    if (matches(./@n/string(), '-'))
+                                                                                                    then(number(substring-before(./@n/string(), '-')) <= number($divSection) and number(substring-after(./@n/string(), '-')) >= number($divSection) and .//ancestor::mei:mdiv[@label = $divName])
+                                                                                                    else (./@n/string() = $divSection and .//ancestor::mei:mdiv[@label = $divName]))]
+                                                                                                let $sourceMeasures2ConcCount := count($sourceMeasures2Conc)
+                                                                                                return
+                                                                                                    if ($sourceMeasures2ConcCount > 1)
+                                                                                                    then (concat($connectionPlistPrefix, 'sources/', $sourceID, '.xml#', $sourceMeasures2Conc[1]/@xml:id/string(), '?tstamp2=', $sourceMeasures2ConcCount - 1, 'm+0'))
+                                                                                                    else if ($sourceMeasures2ConcCount = 1)
+                                                                                                    then (concat($connectionPlistPrefix, 'sources/', $sourceID, '.xml#', $sourceMeasures2Conc[1]/@xml:id/string()))
+                                                                                                    else ()
                                                                                             )
-                                                                                            else ()
-                                                                        
                                                                         return
                                                                             $participant
                                                                 )
@@ -275,82 +316,57 @@ let $concordances :=    element concordances {
                                                                 then (
                                                                     for $ediConcSource in $ediConcSourcesCollection
                                                                     let $sourceID := $ediConcSource/*/@xml:id/string()
-                                                                    let $participant := if ($refSourceDoc/tei:TEI)
+                                                                    let $participant := if ($ediConcSource//mei:parts)
                                                                                         then (
-                                                                                            (:if ($ediConcSource/tei:TEI)
-                                                                                            then (
-                                                                                                let $sourceSegs2Conc := $ediConcSource//tei:seg[@n = $divSection and .//ancestor::tei:div/tei:head[. = $divName]]
-                                                                                                return
-                                                                                                    concat($connectionPlistPrefix, 'texts/', $sourceID, '.xml#', $sourceSegs2Conc[1]/@xml:id/string())
-                                                                                            )
-                                                                                            else('Drei'):)
+                                                                                            concat($connectionPlistPrefix, 'sources/', $sourceID, '.xml#', 'measure_', $ediConcSource//mei:mdiv[@label = $divName]/@xml:id/string(), '_', $divSection)
                                                                                         )
-                                                                                        else if ($refSourceDoc/mei:mei)
+                                                                                        else if ($ediConcSource/tei:TEI)
                                                                                         then (
-                                                                                            if (
-                                                                                                $ediConcSource//mei:parts
-                                                                                            )
-                                                                                            then (
-                                                                                                concat($connectionPlistPrefix, 'sources/', $sourceID, '.xml#', 'measure_', $ediConcSource//mei:mdiv[@label = $divName]/@xml:id/string(), '_', $divSection)
-                                                                                            )
-                                                                                            else if ($ediConcSource/tei:TEI
-                                                                                            )
-                                                                                            then (
-                                                                                                let $sourceSegs2Conc := $ediConcSource//tei:seg[@n = substring-after($divSection, 'seg_') and .//ancestor::tei:div/tei:head[. = $divName]]
-                                                                                                
-                                                                                                return
-                    (:                                                                            $sourceSegs2Conc:)
-                                                                                                    concat($connectionPlistPrefix, 'texts/', $sourceID, '.xml#', $sourceSegs2Conc[1]/@xml:id/string())
-                                                                                            )
-                                                                                            else (
-                                                                                                let $sourceMeasures2Conc := $ediConcSource//mei:measure[
-                                                                                                    (
-                                                                                                    if (starts-with(./@n/string(), 'seg_') and matches(./@n/string(), '-'))
-                                                                                                    then(number(substring-before(substring-after(./@n/string(), 'seg_'), '-')) <= number(substring-after($divSection, 'seg_')) and number(substring-after(substring-after(./@n/string(), 'seg_'), '-')) >= number(substring-after($divSection, 'seg_')))
-                                                                                                    else if (starts-with(./@n/string(), 'seg_') and not(matches(./@n/string(), '-')))
-                                                                                                    then (number(substring-after(./@n/string(), 'seg_')) = number(substring-after($divSection, 'seg_')))
-                                                                                                    else ()
-                                                                                                    )
-                                                                                                    and
-                                                                                                    (
-                                                                                                    .//ancestor::mei:mdiv[@label = $divName]
-                                                                                                    )
-                                                                                                    ]
-                                                                                                let $sourceMeasures2ConcCount := count($sourceMeasures2Conc)
-                                                                                                return
-                                                                                                    if (
-                                                                                                        $sourceMeasures2ConcCount > 1
-                                                                                                    )
-                                                                                                    then (
-                                                                                                        concat($connectionPlistPrefix, 'sources/', $sourceID, '.xml#', $sourceMeasures2Conc[1]/@xml:id/string(), '?tstamp2=', $sourceMeasures2ConcCount - 1, 'm+0')
-                                                                                                    )
-                                                                                                    else (
-                                                                                                        concat($connectionPlistPrefix, 'sources/', $sourceID, '.xml#', $sourceMeasures2Conc[1]/@xml:id/string())
-                                                                                                    )
-                                                                                            )
+                                                                                            let $sourceSegs2Conc := $ediConcSource//*[local-name() = 'seg' or local-name() = 'l'][@n = substring-after($divSection, 'seg_')][.//ancestor::tei:div/tei:head[. = $divName]]
+                                                                                            
+                                                                                            return
+                                                                                                if ($sourceSegs2Conc != '') then (concat($connectionPlistPrefix, 'texts/', $sourceID, '.xml#', $sourceSegs2Conc[1]/@xml:id/string())) else ()
                                                                                         )
-                                                                                        else()
-                                                                    
+                                                                                        else (
+                                                                                            let $sourceMeasures2Conc := $ediConcSource//mei:measure[
+                                                                                                                            (
+                                                                                                                            if (starts-with(./@n/string(), 'seg_') and matches(./@n/string(), '-'))
+                                                                                                                            then(number(substring-before(substring-after(./@n/string(), 'seg_'), '-')) <= number(substring-after($divSection, 'seg_')) and number(substring-after(substring-after(./@n/string(), 'seg_'), '-')) >= number(substring-after($divSection, 'seg_')))
+                                                                                                                            else if (starts-with(./@n/string(), 'seg_') and not(matches(./@n/string(), '-')))
+                                                                                                                            then (substring-after(./@n/string(), 'seg_') = substring-after($divSection, 'seg_'))
+                                                                                                                            else ()
+                                                                                                                            )
+                                                                                                                            and
+                                                                                                                            (
+                                                                                                                            .//ancestor::mei:mdiv[@label = $divName]
+                                                                                                                            )
+                                                                                                                        ]
+                                                                                            let $sourceMeasures2ConcCount := count($sourceMeasures2Conc)
+                                                                                            return
+                                                                                                if ($sourceMeasures2ConcCount > 1)
+                                                                                                then (
+                                                                                                    concat($connectionPlistPrefix, 'sources/', $sourceID, '.xml#', $sourceMeasures2Conc[1]/@xml:id/string(), '?tstamp2=', $sourceMeasures2ConcCount - 1, 'm+0')
+                                                                                                )
+                                                                                                else if ($sourceMeasures2ConcCount = 1)
+                                                                                                then (
+                                                                                                    concat($connectionPlistPrefix, 'sources/', $sourceID, '.xml#', $sourceMeasures2Conc[1]/@xml:id/string())
+                                                                                                )
+                                                                                                else ()
+                                                                                        )
                                                                     return
                                                                         $participant
                                                                 )
-                                                               (: else if (starts-with($divSection, 'seg') and $refSourceDoc/tei:TEI)
-                                                                then (
-                                                                let $ediConcSourcesCollectionFiltered := $ediConcSourcesCollection[matches(./*/@xml:id/string(), 'TextEdition')][matches(./*/@xml:id/string(), 'opera_source_medea_T')]
-                                                                return
-                                                                ''
-                                                                ):)
                                                                 else ()
                                                             }
+                                                            
                                                         
                                                         }
+                                                        )
                                                     }
                                                 }
                                         }
                                     }
-                                    
                         }
-
 return
 (:$concordances:)
     replace node $editionEdiromDoc//concordances with $concordances
