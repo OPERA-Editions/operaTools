@@ -115,16 +115,16 @@ let $concordances :=    element concordances {
                                                         $refSourceDoc/tei:TEI
                                                     )
                                                     then (
-                                                        'Text Gotha 1775'
+                                                        'Text'
                                                     )
                                                     else if (
                                                         $refSourceDoc/mei:mei
                                                     )
                                                     then (
-                                                        'Score 1784'
+                                                        'Score'
                                                     )
                                                     else (
-                                                        'empty'
+                                                        'Please check refSourceDoc!'
                                                     )
                                 return
                                     element concordance {
