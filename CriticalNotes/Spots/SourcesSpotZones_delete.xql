@@ -23,6 +23,7 @@ let $contentsBasePath := concat('../../../', $editionID, '/')
 let $sourcesDocs := collection(concat($contentsBasePath, 'sources/?select=*.xml'))
 
 for $source in $sourcesDocs
-let $spotZones := $source//zone[@type = 'operaAnnotSpot']
+let $sourceDoc := doc(document-uri($source))
+let $spotZones := $sourceDoc//zone[@type = 'operaAnnotSpot']
 return
     delete nodes $spotZones
