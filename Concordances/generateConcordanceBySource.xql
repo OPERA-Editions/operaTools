@@ -162,7 +162,7 @@ let $concordances :=    element concordances {
                                                                     $refSourceDoc/tei:TEI
                                                                 )
                                                                 then (
-                                                                    $div//tei:seg
+                                                                    $div//*[local-name() = 'seg' or local-name() = 'l']
                                                                 )
                                                                 else if (
                                                                     $refSourceDoc/mei:mei
