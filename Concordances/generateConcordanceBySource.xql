@@ -143,7 +143,7 @@ let $concordances :=    element concordances {
                                                                 then (
                                                                     $refSourceDoc//mei:mdiv
                                                                 )
-                                                                else () 
+                                                                else ()
                                             for $div in $divisions
                                             let $divName := if (
                                                                 $refSourceDoc/tei:TEI
