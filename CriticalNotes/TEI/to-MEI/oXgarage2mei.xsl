@@ -178,6 +178,9 @@
               <xsl:when test=". = 'Bassi'">
                 <xsl:value-of select="'Violoncello e Contraviolone'"/>
               </xsl:when>
+              <xsl:when test=". = 'Vc.'">
+                <xsl:value-of select="'Violoncello e Contraviolone'"/>
+              </xsl:when>
               <xsl:when test=". = 'Fl. I'">
                 <xsl:value-of select="'Flauto primo'"/>
               </xsl:when>
