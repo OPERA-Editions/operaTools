@@ -679,6 +679,21 @@
                     </xsl:choose>
                 </xsl:when>
               </xsl:choose>
+              
+              <xsl:if test="$spots != ''">
+                <!-- Ist es eine reine Spotanmerkung? -->
+                  <xsl:variable name="spotsT" select="tokenize(normalize-space($spots), '; ')"/>
+                  <xsl:for-each select="$spotsT">
+                    <xsl:variable name="spotT" select="tokenize(., ', ')"/>
+                    <xsl:variable name="spotSurfaceID" select="$spotT[2]"/>
+                    <xsl:variable name="spotSurfaceSourceDocURI" select="document-uri($sourceDocs[//mei:mei//mei:surface[@xml:id = $spotSurfaceID]])"/>
+                    <xsl:variable name="spotID" select="concat('opera_zone_edition-', $editionID, '_', $spotT[3])"/>
+                    <xsl:variable name="spotParticipantURI" select="concat('xmldb:exist:///db/contents/', substring-after($spotSurfaceSourceDocURI, 'OPERA-Edition/'), '#', $spotID, ' ')"/>
+                    <xsl:value-of select="$spotParticipantURI"/>
+                  </xsl:for-each>                
+                  <!-- ToDo -->
+              </xsl:if>
+              
             </xsl:variable>
             <xsl:value-of select="$plist"/>
             <!--<xsl:variable name="plistSorted">
