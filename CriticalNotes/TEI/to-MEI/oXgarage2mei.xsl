@@ -206,19 +206,19 @@
                 <xsl:value-of select="'Corno secondo'"/>
               </xsl:when>
               <xsl:when test=". = 'Ob. I on stage'">
-                <xsl:value-of select="'Oboe primo (stage orchestra)'"/>
+                <xsl:value-of select="'Oboe primo on stage'"/>
               </xsl:when>
               <xsl:when test=". = 'Ob. II on stage'">
-                <xsl:value-of select="'Oboe secondo (stage orchestra)'"/>
+                <xsl:value-of select="'Oboe secondo on stage'"/>
               </xsl:when>
-              <xsl:when test=". = 'Fg. on stage'">
-                <xsl:value-of select="'Fagotto primo (stage orchestra)'"/>
+              <xsl:when test=". = 'Fag. on stage'">
+                <xsl:value-of select="'Fagotto on stage'"/>
               </xsl:when>
               <xsl:when test=". = 'Cor. I on stage'">
-                <xsl:value-of select="'Corno primo (stage orchestra)'"/>
+                <xsl:value-of select="'Corno primo on stage'"/>
               </xsl:when>
               <xsl:when test=". = 'Cor. II on stage'">
-                <xsl:value-of select="'Corno secondo (stage orchestra)'"/>
+                <xsl:value-of select="'Corno secondo on stage'"/>
               </xsl:when>
               <xsl:otherwise>
                 <xsl:value-of select="'No part found, please check!'"/>
