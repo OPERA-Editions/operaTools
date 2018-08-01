@@ -479,78 +479,55 @@
                                     
                                     <!-- alle gesuchten Takte in allen benötigten parts -->
                                     <xsl:variable name="sourceDocMdivPartsMeasureParticipants">
-                                      <!-- wenn 'all' alle measure aus mdiv mit n= measureNo, ansonsten parts -->
-                                      <xsl:choose>
-                                        <!-- wenn $parts nur einen Teilnehmer hat und dieser 'all' ist,
-                                              brauchen wir einfach alle Takte -->
-                                        <xsl:when test="count($parts) = 1 and $parts[1] = 'all'">
-                                          <xsl:variable name="allParts" select="$sourceDocMdivParts/@label/string()"/>
-                                          <xsl:variable name="countParts" select="count($allParts)"/>
-                                          <xsl:for-each select="$allParts">
-                                            <xsl:variable name="part" select="."/>
-                                            <!-- alle Takt-IDs in diesem part, die die entsprechende Taktnummer haben -->
-                                            
-                                            <!-- alle Takte in diesem part -->
-                                            <xsl:variable name="partMeasures" select="$sourceDocMdivParts[@label = $part]//mei:measure"/>
-                                            <!-- all Takt-IDs, die mit $mdivIdMeasureNo in Verbindung stehen -->
-                                            <xsl:variable name="measureIDs">
-                                              <xsl:for-each select="$partMeasures">
-                                                <xsl:variable name="partMeasure" select="."/>
-                                                <xsl:choose>
-                                                  <!-- sind es zusammengefasste Takte? -->
-                                                  <xsl:when test="contains($partMeasure/@n, '-')">
-                                                    <xsl:variable name="partMeasureFirst">
-                                                      <xsl:value-of select="number(substring-before($partMeasure/@n/string(), '-'))"/>
-                                                    </xsl:variable>
-                                                    <xsl:variable name="partMeasureLast">
-                                                      <xsl:value-of select="number(substring-after($partMeasure/@n/string(), '-'))"/>
-                                                    </xsl:variable>
-                                                    <xsl:if test="$partMeasureFirst &lt;= number($mdivIdMeasureNo) and $partMeasureLast &gt;= number($mdivIdMeasureNo)">
-                                                      <xsl:value-of select="concat($partMeasure/@xml:id/string(), ' ')"/>
-                                                    </xsl:if>
-                                                  </xsl:when>
-                                                  <!-- ansonsten einfach alle anderen -->
-                                                  <xsl:otherwise>
-                                                    <xsl:value-of select=".[@n = $mdivIdMeasureNo]/@xml:id/string()"/>
-                                                  </xsl:otherwise>
-                                                  
-                                                </xsl:choose>
-                                              </xsl:for-each>
-                                            </xsl:variable>
-                                            
-                                            <!-- participant uris für @plist -->
-                                            <xsl:variable name="measureParticipants">
-                                              <xsl:for-each select="distinct-values(tokenize($measureIDs, ' '))">
-                                                <xsl:variable name="measureID" select="."/>
-                                                  <xsl:if test="$measureID != ''">
-                                                    <xsl:value-of select="concat(substring-before($concPlistsJoinedTMemberSearch, '#'), '#', $measureID, ' ')"/>
-                                                  </xsl:if>
-                                              </xsl:for-each>
-                                            </xsl:variable>
-                                            <xsl:value-of select="$measureParticipants"/>
+                                      <xsl:for-each select="$parts">
+                                        <xsl:variable name="part" select="."/>
+                                        <!-- alle Takt-IDs in diesem part, die die entsprechende Taktnummer haben -->
+                                        
+                                        <!-- alle Takte in diesem part -->
+                                        <xsl:variable name="partMeasures" select="$sourceDocMdivParts[@label = $part]//mei:measure"/>
+                                        <!-- all Takt-IDs, die mit $mdivIdMeasureNo in Verbindung stehen -->
+                                        <xsl:variable name="measureIDs">
+                                          <xsl:for-each select="$partMeasures">
+                                            <xsl:variable name="partMeasure" select="."/>
+                                            <xsl:choose>
+                                              <!-- sind es zusammengefasste Takte? -->
+                                              <xsl:when test="contains($partMeasure/@n, '-')">
+                                                <xsl:variable name="partMeasureFirst">
+                                                  <xsl:value-of select="number(substring-before($partMeasure/@n/string(), '-'))"/>
+                                                </xsl:variable>
+                                                <xsl:variable name="partMeasureLast">
+                                                  <xsl:value-of select="number(substring-after($partMeasure/@n/string(), '-'))"/>
+                                                </xsl:variable>
+                                                <xsl:if test="$partMeasureFirst &lt;= number($mdivIdMeasureNo) and $partMeasureLast &gt;= number($mdivIdMeasureNo)">
+                                                  <xsl:value-of select="concat($partMeasure/@xml:id/string(), ' ')"/>
+                                                </xsl:if>
+                                              </xsl:when>
+                                              <!-- ansonsten einfach alle anderen -->
+                                              <xsl:otherwise>
+                                                <!--<xsl:value-of select="$sources"/>-->
+                                                <!--<xsl:text>HALLO!</xsl:text>-->
+                                                <!--<xsl:value-of select="$partMeasure[@n = $mdivIdMeasureNo]/@xml:id/string()"/>-->
+                                                <xsl:variable name="measureIDs" select=".[@n = $mdivIdMeasureNo]/@xml:id"/>
+                                                <xsl:for-each select="$measureIDs">
+                                                  <xsl:value-of select="concat(./string(), ' ')"/>
+                                                </xsl:for-each>
+                                              </xsl:otherwise>
+                                              
+                                            </xsl:choose>
                                           </xsl:for-each>
-                                        </xsl:when>
+                                        </xsl:variable>
                                         
-                                        
-                                        
-                                        <!-- ansonsten die entsprechenden $parts abarbeiten -->
-                                        <xsl:otherwise>
-                                          <xsl:for-each select="$parts">
-                                            <xsl:variable name="part" select="."/>
-                                            <!-- alle Takt-IDs in diesem part, die die entsprechende Taktnummer haben -->
-                                            <xsl:variable name="measureIDs" select="$sourceDocMdivParts[@label = $part]//mei:measure[@n = $mdivIdMeasureNo]/@xml:id"/>
-                                            <!-- participant uris für @plist -->
-                                            <xsl:variable name="measureParticipants">
-                                              <xsl:for-each select="$measureIDs">
-                                                <xsl:variable name="measureID" select="."/>
-                                                <xsl:value-of select="concat(substring-before($concPlistsJoinedTMemberSearch, '#'), '#', $measureID, ' ')"/>
-                                              </xsl:for-each>
-                                            </xsl:variable>
-                                            <xsl:value-of select="$measureParticipants"/>
+                                        <!-- participant uris für @plist -->
+                                        <xsl:variable name="measureParticipants">
+                                          <xsl:for-each select="distinct-values(tokenize($measureIDs, ' '))">
+                                            <xsl:variable name="measureID" select="."/>
+                                              <xsl:if test="$measureID != ''">
+                                                <xsl:value-of select="concat(substring-before($concPlistStartTMemberSearch, '#'), '#', $measureID, ' ')"/>
+                                              </xsl:if>
                                           </xsl:for-each>
-                                        </xsl:otherwise>
-                                      </xsl:choose>
-                                      
+                                        </xsl:variable>
+                                        <xsl:value-of select="$measureParticipants"/>
+                                      </xsl:for-each>
                                       
                                     </xsl:variable>
                                     <!-- hier kommt dieser Teil der @plist -->
