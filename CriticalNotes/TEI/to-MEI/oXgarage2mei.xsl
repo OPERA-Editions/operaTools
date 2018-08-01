@@ -89,6 +89,9 @@
   <!-- The relative path to the edition's root content folder, seen from this xslt's folder. -->
   <xsl:variable name="basePathToEditionContents" as="xs:string">../../../../</xsl:variable>
   
+  <!-- Which type of concordance should be processed? ('music' or 'text') -->
+  <xsl:variable name="editionConcordanceType" select="'text'"/>
+  
   <!-- Sort order for annotation previews. -->
   <xsl:variable name="annotPreviewsSortOrder">
     <i>opera_source_medea_A1</i>
@@ -113,8 +116,17 @@
   </xsl:variable>
   <xsl:variable name="sourceDocs" select="collection(concat($pathToEditionContents, '/sources?select=*.xml'))" as="document-node()*"/>
   <xsl:variable name="editionDoc" select="doc(concat($pathToEditionContents, '/', $editionIDPrefix, $editionID, '.xml'))" as="document-node()"/>
-<!--  <xsl:variable name="editionConcordances" select="$editionDoc//edi:work[@xml:id = $workID]//edi:concordances//edi:concordance"/>-->
-  <xsl:variable name="editionConcordances" select="$editionDoc//edi:work[@xml:id = $workID]//edi:concordances//edi:concordance[1]" as="node()*"/>
+  <xsl:variable name="editionConcordances" as="node()*">
+    <xsl:choose>
+      <xsl:when test="$editionConcordanceType = 'music'">
+        <xsl:copy-of select="$editionDoc//edi:work[@xml:id = $workID]//edi:concordances//edi:concordance[1]"/>
+      </xsl:when>
+      <xsl:when test="$editionConcordanceType = 'text'">
+        <xsl:copy-of select="$editionDoc//edi:work[@xml:id = $workID]//edi:concordances//edi:concordance[2]"/>
+      </xsl:when>
+      <xsl:otherwise/>
+    </xsl:choose>
+  </xsl:variable>
   
   
   <xd:doc>
@@ -288,17 +300,16 @@
   <!--                <xsl:variable name="actualConc" select="$editionConcordances[@name = $actualMDIV]" as="element()"/>-->
                   <xsl:variable name="actualConcGroup" select="$editionConcordances//edi:group[@name = $actualMDIV]" as="element()"/>
                   <!-- Teilnehmer der Startangabe -->
-                  <!--<xsl:variable name="concConnectionStart" as="element()">
+                  <xsl:variable name="concConnectionStart" as="element()">
                     <xsl:choose>
-                      <xsl:when test="$actualConc//edi:group">
-                        <xsl:copy-of select="$actualConc//edi:group[@name = 'Navigation by bar']//edi:connection[@name = $bar_first]"/>
+                      <xsl:when test="$editionConcordanceType = 'music'">
+                        <xsl:copy-of select="$actualConcGroup//edi:connection[@name = $bar_first] | $actualConcGroup//edi:connection[@name = concat('seg ', $seg_first)]"/>
                       </xsl:when>
-                      <xsl:otherwise>
-                        <xsl:copy-of select="$actualConc//edi:connection[@name = $bar_first]"/>
-                      </xsl:otherwise>
+                      <xsl:when test="$editionConcordanceType = 'text'">
+                        <xsl:copy-of select="$actualConcGroup//edi:connection[@name = $seg_first]"/>
+                      </xsl:when>
                     </xsl:choose>
-                  </xsl:variable>-->
-                  <xsl:variable name="concConnectionStart" select="$actualConcGroup//edi:connection[@name = $bar_first] | $actualConcGroup//edi:connection[@name = concat('seg ', $seg_first)]" as="element()"/>
+                  </xsl:variable>
                   
                   <xsl:variable name="concPlistStart" select="$concConnectionStart/@plist"/>
                   <xsl:variable name="concPlistStartT" select="tokenize($concPlistStart,' ')"/>
