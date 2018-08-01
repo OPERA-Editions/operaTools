@@ -22,7 +22,7 @@ let $workID := 'opera_work_4fb7f9fb-12b0-4266-8da3-3c4420c2a714'
 let $contentsBasePath := concat('../../../', $editionID, '/')
 let $sourcesDocs := collection(concat($contentsBasePath, 'sources/?select=*.xml'))
 
-let $annotations := doc(concat($contentsBasePath, 'resources/CR_Medea_Music.xml'))//tei:table[@xml:id='Table1']/tei:row[position() > 1 ]
+let $annotations := collection(concat($contentsBasePath, 'resources/?select=*.xml'))//tei:table[@xml:id='Table1']/tei:row[position() > 1 ]
 
 for $annotation at $pos in $annotations
     let $spotsT := tokenize(normalize-space($annotation//tei:cell[10]), '; ')
