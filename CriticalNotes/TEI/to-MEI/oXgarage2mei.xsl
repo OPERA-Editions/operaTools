@@ -239,7 +239,7 @@
           </xsl:for-each>
         </xsl:variable>
         
-        <xsl:variable name="sources" select="tei:cell[9]" as="xs:string"/>
+        <xsl:variable name="sources" select="normalize-space(tei:cell[9])" as="xs:string"/>
         <xsl:variable name="spots" select="normalize-space(tei:cell[10])" as="xs:string"/>
         <xsl:variable name="category" select="normalize-space(tei:cell[11])" as="xs:string"/>
         <xsl:variable name="note" select="tei:cell[12]"/>
