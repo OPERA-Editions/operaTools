@@ -266,7 +266,7 @@
               <xsl:choose>
                 
                 <!-- Ist es eine reine Spotanmerkung? -->
-                <xsl:when test="$spots != '' and $bar_first = ''">
+                <xsl:when test="$spots != '' and $bar_first = '' and $seg_first = ''">
                   <xsl:variable name="spotsT" select="tokenize(normalize-space($spots), '; ')"/>
                   <xsl:for-each select="$spotsT">
                     <xsl:variable name="spotT" select="tokenize(., ', ')"/>
