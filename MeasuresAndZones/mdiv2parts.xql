@@ -27,7 +27,7 @@ return
     if ($mdivPartOrder = '1')
     then (
         <body>{
-            let $realMdivsLabels :=  distinct-values($doc//mei:mdiv/@label/substring-before(., ' – '))
+            let $realMdivsLabels :=  distinct-values($doc//mei:mdiv/@label/substring-before(., $mdivPartDivider))
             for $realMdivLabel in $realMdivsLabels
             return
                 <mdiv xml:id="{concat('edirom_mdiv_', uuid:randomUUID())}" label="{$realMdivLabel}">
@@ -36,7 +36,7 @@ return
                         for $partMdiv in $doc//mei:mdiv
                         let $partMdivLabel := $partMdiv/@label/string()
                         let $section := $partMdiv//mei:section
-                        let $partLabel := substring-after($partMdivLabel, ' – ')
+                        let $partLabel := substring-after($partMdivLabel, $mdivPartDivider)
                         let $partLabelID := $doc//mei:workDesc//mei:instrVoice[@label = $partLabel]/@xml:id
                         where starts-with($partMdivLabel, $realMdivLabel) 
                         return
@@ -54,7 +54,7 @@ return
         <body>{
             for $mdiv at $pos in $doc//mei:mdiv
             let $mdivID := $mdiv/@xml:id
-            let $mdivLabel := substring-before($mdiv/@label, ', ')
+            let $mdivLabel := substring-before($mdiv/@label, $mdivPartDivider)
             where $pos < 10
             return
                 <mdiv xml:id="{$mdivID}" label="{$mdivLabel}">
@@ -62,7 +62,7 @@ return
                         for $partMdiv in $doc//mei:mdiv
                         let $partMdivLabel := $partMdiv/@label
                         let $section := $partMdiv//mei:section
-                        let $partLabel := substring-after($partMdivLabel, ', ')
+                        let $partLabel := substring-after($partMdivLabel, $mdivPartDivider)
                         let $partLabelID := $doc//mei:workDesc//mei:instrVoice[@label = $partLabel]/@xml:id
                         where starts-with($partMdivLabel, $mdivLabel) 
                         return
