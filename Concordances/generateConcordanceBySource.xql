@@ -261,7 +261,7 @@ let $concordances :=    element concordances {
                                                                                                 else (
                                                                                                     let $sourceMeasures2Conc := $ediConcSource//mei:measure[(
                                                                                                         if (starts-with(./@n/string(), 'seg_') and matches(./@n/string(), '-'))
-                                                                                                        then(number(substring-before(substring-after(./@n/string(), 'seg_'), '-')) <= number($divSection) and number(substring-after(substring-after(./@n/string(), 'seg_'), '-')) >= number($divSection))
+                                                                                                        then(number(functx:substring-before-match(substring-before(substring-after(./@n/string(), 'seg_'), '-'), 'a')) <= number($divSection) and number(functx:substring-before-match(substring-after(substring-after(./@n/string(), 'seg_'), '-'), 'a')) >= number($divSection))
                                                                                                         else if (starts-with(./@n/string(), 'seg_') and not(matches(./@n/string(), '-')))
                                                                                                         then (number(substring-after(./@n/string(), 'seg_')) = number($divSection))
                                                                                                         else ()
