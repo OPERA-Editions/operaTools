@@ -858,9 +858,13 @@
     <xd:desc/>
   </xd:doc>
   <xsl:template match="tei:graphic">
+    <xsl:variable name="graphic">
+      <xsl:value-of select="if (starts-with(./../../preceding-sibling::tei:p[1]//text(), '[')) then (substring-before(substring-after(./../../preceding-sibling::tei:p[1]//text(), '['), ']')) else ()"/>
+    </xsl:variable>
     <xsl:element name="graphic">
-      <xsl:attribute name="target" select="'edition-74338557/graphics/'"></xsl:attribute>
-      <xsl:processing-instruction name="JS">TODO</xsl:processing-instruction>
+      <xsl:attribute name="target" select="concat('edition-74338557/graphics/', $graphic)"></xsl:attribute>
+      <xsl:attribute name="width">0.7</xsl:attribute>
+<!--      <xsl:processing-instruction name="JS">TODO</xsl:processing-instruction>-->
     </xsl:element>
   </xsl:template>
   
