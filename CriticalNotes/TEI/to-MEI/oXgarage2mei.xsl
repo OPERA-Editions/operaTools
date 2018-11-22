@@ -706,6 +706,18 @@
                   <!-- ToDo -->
               </xsl:if>
               
+              <!-- Gibt es weitere Text-IDs, die hinzugefügt werden sollen? -->
+              <xsl:if test="$additionalParticipants != ''">
+                <xsl:variable name="additionalParticipantsT" select="tokenize(normalize-space($additionalParticipants), '; ')"/>
+                <xsl:for-each select="$additionalParticipantsT">
+                  <xsl:variable name="additionalParticipantT" select="tokenize(., ', ')"/>
+                  <xsl:variable name="additionalParticipantTSiglum" select="$additionalParticipantT[1]"/>
+                  <xsl:variable name="additionalParticipantTSourceDocURI" select="document-uri($textSourceDocs[matches(//tei:altIdentifier/tei:idno, $additionalParticipantTSiglum)])"/>
+                  <xsl:variable name="additionalParticipantTid" select="$additionalParticipantT[2]"/>
+                  <xsl:variable name="additionalParticipantTURI" select="concat('xmldb:exist:///db/contents/', substring-after($additionalParticipantTSourceDocURI, 'OPERA-Edition/'), '#', $additionalParticipantTid, ' ')"/>
+                  <xsl:value-of select="$additionalParticipantTURI"/>
+                </xsl:for-each>
+              </xsl:if>
             </xsl:variable>
             <xsl:value-of select="$plist"/>
             <!--<xsl:variable name="plistSorted">
