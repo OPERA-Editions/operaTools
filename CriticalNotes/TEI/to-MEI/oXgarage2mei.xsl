@@ -90,7 +90,7 @@
   <xsl:variable name="basePathToEditionContents" as="xs:string">../../../../</xsl:variable>
   
   <!-- Which type of concordance should be processed? ('music' or 'text') -->
-  <xsl:variable name="editionConcordanceType" select="'text'"/>
+  <xsl:variable name="editionConcordanceType" select="'music'"/>
   
   <!-- Sort order for annotation previews. -->
   <xsl:variable name="annotPreviewsSortOrder">
@@ -115,6 +115,7 @@
     <xsl:value-of select="concat($basePathToEditionContents, $editionIDPrefix, $editionID)"/>
   </xsl:variable>
   <xsl:variable name="sourceDocs" select="collection(concat($pathToEditionContents, '/sources?select=*.xml'))" as="document-node()*"/>
+  <xsl:variable name="textSourceDocs" select="collection(concat($pathToEditionContents, '/texts?select=*.xml'))" as="document-node()*"/>
   <xsl:variable name="editionDoc" select="doc(concat($pathToEditionContents, '/', $editionIDPrefix, $editionID, '.xml'))" as="document-node()"/>
   <xsl:variable name="editionConcordances" as="node()*">
     <xsl:choose>
