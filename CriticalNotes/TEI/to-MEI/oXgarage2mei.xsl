@@ -692,8 +692,8 @@
                 </xsl:when>
               </xsl:choose>
               
-              <xsl:if test="$spots != ''">
-                <!-- Ist es eine reine Spotanmerkung? -->
+              <!-- Wenn es eine takt-/segmentbasiere Anmerkung war, gibt es vielleicht trotzdem Spots? -->
+              <xsl:if test="$spots != '' and ($bar_first != '' or $seg_first != '')">
                   <xsl:variable name="spotsT" select="tokenize(normalize-space($spots), '; ')"/>
                   <xsl:for-each select="$spotsT">
                     <xsl:variable name="spotT" select="tokenize(., ', ')"/>
