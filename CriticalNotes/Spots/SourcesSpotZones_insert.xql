@@ -32,7 +32,7 @@ for $annotation at $pos in $annotations
             let $spotT := tokenize($spot, ', ')
             (: just for info: :)
             let $sourceSiglum := $spotT[1]
-            (: we later search the right source by surfaceID… :)
+            (: we search source by surfaceID… :)
             let $spotSurfaceID := $spotT[2]
             let $spotID := $spotT[3]
             let $spotULX := $spotT[4]
