@@ -253,8 +253,9 @@
         
         <xsl:variable name="sources" select="normalize-space(tei:cell[9])" as="xs:string"/>
         <xsl:variable name="spots" select="normalize-space(tei:cell[10])" as="xs:string"/>
-        <xsl:variable name="category" select="normalize-space(tei:cell[11])" as="xs:string"/>
-        <xsl:variable name="note" select="tei:cell[12]"/>
+        <xsl:variable name="additionalParticipants" select="string-join(tei:cell[11]//text())" as="xs:string"/>
+        <xsl:variable name="category" select="normalize-space(tei:cell[12])" as="xs:string"/>
+        <xsl:variable name="note" select="tei:cell[13]"/>
         
         <!-- Wird das hier überhaupt benötigt? -->
         <!--<xsl:variable name="scene" as="xs:string">
