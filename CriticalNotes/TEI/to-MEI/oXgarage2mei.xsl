@@ -73,6 +73,21 @@
       "/>
     
   </xsl:function>
+  
+  <xd:doc>
+    <xd:desc/>
+    <xd:param name="arg"/>
+    <xd:param name="regex"/>
+  </xd:doc>
+  <xsl:function name="functx:substring-before-match" as="xs:string">
+    <xsl:param name="arg" as="xs:string?"/>
+    <xsl:param name="regex" as="xs:string"/>
+    
+    <xsl:sequence select="
+      tokenize($arg,$regex)[1]
+      "/>
+    
+  </xsl:function>
     
   <!-- ID of MEI work file. -->
   <xsl:variable name="workID" as="xs:string">opera_work_4fb7f9fb-12b0-4266-8da3-3c4420c2a714</xsl:variable>
