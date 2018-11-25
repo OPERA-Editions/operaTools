@@ -713,8 +713,17 @@
                 <xsl:for-each select="$additionalParticipantsT">
                   <xsl:variable name="additionalParticipantT" select="tokenize(., ', ')"/>
                   <xsl:variable name="additionalParticipantTSiglum" select="$additionalParticipantT[1]"/>
-                  <xsl:variable name="additionalParticipantTSourceDocURI" select="document-uri($textSourceDocs[matches(//tei:altIdentifier/tei:idno, $additionalParticipantTSiglum)])"/>
                   <xsl:variable name="additionalParticipantTid" select="$additionalParticipantT[2]"/>
+                  <xsl:variable name="additionalParticipantTSourceDocURI">
+                    <xsl:choose>
+                      <xsl:when test="contains($additionalParticipantTid, 'measure')">
+                        <xsl:value-of select="document-uri($sourceDocs[matches(//mei:sourceDesc/mei:source/mei:identifier[@type = 'siglum'], $additionalParticipantTSiglum)])"/>
+                      </xsl:when>
+                      <xsl:otherwise>
+                        <xsl:value-of select="document-uri($textSourceDocs[matches(//tei:altIdentifier/tei:idno, $additionalParticipantTSiglum)])"/>
+                      </xsl:otherwise>
+                    </xsl:choose>
+                  </xsl:variable>
                   <xsl:variable name="additionalParticipantTURI" select="concat('xmldb:exist:///db/contents/', substring-after($additionalParticipantTSourceDocURI, 'OPERA-Edition/'), '#', $additionalParticipantTid, ' ')"/>
                   <xsl:value-of select="$additionalParticipantTURI"/>
                 </xsl:for-each>
