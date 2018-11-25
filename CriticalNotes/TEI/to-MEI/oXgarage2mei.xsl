@@ -741,41 +741,41 @@
                 <!-- no bars, no segs., so leave empty… -->
                 <xsl:when test="$bar_first = '' and $bar_last = '' and $seg_first = '' and $seg_last = ''">Hier passt etwas nicht. Bitte prüfen!</xsl:when>
                 <xsl:when test="$bar_first = '' and $bar_last = '' and $seg_first != '' and $seg_last = ''">
-                  <xsl:value-of select="concat('seg ', $seg_first, ', ')"/>
+                  <xsl:value-of select="concat('seg ', $seg_first, if ($spotTitle) then (concat(', ', $spotTitle)) else ())"/>
                 </xsl:when>
                 <!-- no bars, different segs. -->
                 <xsl:when test="$bar_first = '' and $bar_last = '' and $seg_first != $seg_last">
-                  <xsl:value-of select="concat('seg ', $seg_first, '–', $seg_last, ', ')"/>
+                  <xsl:value-of select="concat('seg ', $seg_first, '–', $seg_last, if ($spotTitle) then (concat(', ', $spotTitle)) else ())"/>
                 </xsl:when>
                 <!-- no bars, same segs. -->
                 <xsl:when test="$bar_first = '' and $bar_last = '' and $seg_first = $seg_last">
-                  <xsl:value-of select="concat('seg ', $seg_first, ', ')"/>
+                  <xsl:value-of select="concat('seg ', $seg_first, if ($spotTitle) then (concat(', ', $spotTitle)) else ())"/>
                 </xsl:when>
                 <!-- only first bar -->
                 <xsl:when test="$bar_first != '' and $bar_last = ''">
-                  <xsl:value-of select="concat('bar ', $bar_first, ', ')"/>
+                  <xsl:value-of select="concat('bar ', $bar_first, if ($spotTitle) then (concat(', ', $spotTitle)) else ())"/>
                 </xsl:when>
                 <!-- only first bar and first seg. -->
                 <xsl:when test="$bar_first != '' and $bar_last = '' and $seg_first != '' and $seg_last = ''">
-                  <xsl:value-of select="concat('bar ', $bar_first, ', seg ', $seg_first)"/>
+                  <xsl:value-of select="concat('bar ', $bar_first, ', seg ', $seg_first, if ($spotTitle) then (concat(', ', $spotTitle)) else ())"/>
                 </xsl:when>
                 <!-- same bars -->
                 <xsl:when test="$bar_last = $bar_first">
-                  <xsl:value-of select="concat('bar ', $bar_first, ', ')"/>
+                  <xsl:value-of select="concat('bar ', $bar_first, if ($spotTitle) then (concat(', ', $spotTitle)) else ())"/>
                 </xsl:when>
                 <!-- different bars, no segs. -->
                 <xsl:when test="$bar_last != $bar_first and $seg_first = '' and $seg_last = ''" >
-                  <xsl:value-of select="concat('bars ', $bar_first, '–', $bar_last, ', ')"/>
+                  <xsl:value-of select="concat('bars ', $bar_first, '–', $bar_last, if ($spotTitle) then (concat(', ', $spotTitle)) else ())"/>
                 </xsl:when>
                 <!-- different bars, different segs.-->
                 <xsl:when test="$bar_first != $bar_last and $seg_first != $seg_last">
-                  <xsl:value-of select="concat('bars ', $bar_first, '–', $bar_last, ', seg ', $seg_first, '–', $seg_last, ', ')"/>
+                  <xsl:value-of select="concat('bars ', $bar_first, '–', $bar_last, ', seg ', $seg_first, '–', $seg_last, if ($spotTitle) then (concat(', ', $spotTitle)) else ())"/>
                 </xsl:when>
                 <!-- when anything matches, print error message: -->
                 <xsl:otherwise>Something went wrong, please check the template!</xsl:otherwise>
               </xsl:choose>
             </xsl:variable>
-            <xsl:value-of select="concat(normalize-space($table.scene), ', ', $titleBarOrSegIndicator, $system)"/>
+            <xsl:value-of select="concat(normalize-space($table.scene), if ($titleBarOrSegIndicator) then (concat(', ', $titleBarOrSegIndicator)) else (), if ($system) then (concat(', ', replace($system, 'Va. I/II', 'Va. I, Va. II'))) else ())"/>
           </xsl:element>
           <xsl:choose>
             <xsl:when test="not($note/tei:p)">
