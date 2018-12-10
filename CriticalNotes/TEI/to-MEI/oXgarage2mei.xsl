@@ -391,7 +391,7 @@
                                         
                                         <!-- alle Takte in diesem part -->
                                         <xsl:variable name="partMeasures" select="$sourceDocMdivParts[@label = $part]//mei:measure"/>
-                                        <!-- all Takt-IDs, die mit $mdivIdMeasureNo in Verbindung stehen -->
+                                        <!-- alle Takt-IDs, die mit $mdivIdMeasureNo in Verbindung stehen -->
                                         <xsl:variable name="measureIDs">
                                           <xsl:for-each select="$partMeasures">
                                             <xsl:variable name="partMeasure" select="."/>
