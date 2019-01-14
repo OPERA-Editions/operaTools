@@ -109,14 +109,7 @@
   
   <!-- Sort order for annotation previews. -->
   <xsl:variable name="annotPreviewsSortOrder">
-    <i>opera_source_medea_A1</i>
-    <i>opera_source_medea_A2</i>
-    <i>opera_source_medea_B</i>
-    <i>opera_source_medea_T</i>
-    <i>opera_source_medea_TA</i>
-    <i>TextEdition_Frankenthal</i>
-    <i>TextEdition_Gotha</i>
-    <i>opera_edition_730ca1ed-05fb-4642-8159-d41aa1ec810e</i>
+    <i>opera_source_</i>
   </xsl:variable>
   
   
