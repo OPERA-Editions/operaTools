@@ -90,10 +90,10 @@
   </xsl:function>
     
   <!-- ID of MEI work file. -->
-  <xsl:variable name="workID" as="xs:string">opera_work_4fb7f9fb-12b0-4266-8da3-3c4420c2a714</xsl:variable>
+  <xsl:variable name="workID" as="xs:string">opera_work_d471efd4-7c6f-4e07-9195-8a6fd713f227</xsl:variable>
   
   <!-- ID of EDIROM edition file. -->
-  <xsl:variable name="editionID" as="xs:string">74338557</xsl:variable>
+  <xsl:variable name="editionID" as="xs:string">74338558</xsl:variable>
   
   <!-- If there is a prefix ('edtion-' etc.) to the edition's ID, put it here! -->
   <xsl:variable name="editionIDPrefix" as="xs:string">edition-</xsl:variable>
