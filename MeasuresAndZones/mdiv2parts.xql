@@ -3,6 +3,11 @@ xquery version "3.0";
 declare namespace mei="http://www.music-encoding.org/ns/mei";
 declare namespace uuid = "java:java.util.UUID";
 
+declare option saxon:output "method=xml";
+declare option saxon:output "media-type=text/xml";
+declare option saxon:output "omit-xml-declaration=yes";
+declare option saxon:output "indent=yes";
+
 (: This xquery takes the <body/> tag of a mei file which contains mdiv(s) for each combination of mdiv and instrument/voice and transforms its contents to "real" mdivs with the respective 
 <parts><part/></parts> structure for each insturment/voice.
 
