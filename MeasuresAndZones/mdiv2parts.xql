@@ -15,7 +15,11 @@ declare option saxon:output "indent=yes";
 
 
 (: Path to the mei file :)
-let $sourceURI := 'Path'
+let $editionID := ''
+let $sourceID := ''
+let $basePathToEditionContents := '../../'
+let $sourceURI := concat($basePathToEditionContents, $editionID, '/sources/', $sourceID, '.xml')
+
 let $doc := doc($sourceURI)
 
 (:  1: mdiv-1 – part-1, mdiv-1 – part-2, mdiv-2 – part-1, mdiv-2 – part-2, etc.
