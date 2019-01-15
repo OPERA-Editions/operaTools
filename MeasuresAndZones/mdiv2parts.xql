@@ -39,7 +39,7 @@ return
             let $realMdivsLabels :=  distinct-values($doc//mei:mdiv/@label/substring-before(., $mdivPartDivider))
             for $realMdivLabel in $realMdivsLabels
             return
-                <mdiv xml:id="{concat('edirom_mdiv_', uuid:randomUUID())}" label="{$realMdivLabel}">
+                <mdiv xml:id="{concat('opera_mdiv_', uuid:randomUUID())}" label="{$realMdivLabel}">
                     <parts>
                         {
                         for $partMdiv in $doc//mei:mdiv
@@ -49,7 +49,7 @@ return
                         let $partLabelID := $doc//mei:workDesc//mei:instrVoice[@label = $partLabel]/@xml:id
                         where starts-with($partMdivLabel, $realMdivLabel) 
                         return
-                            <part xml:id="{concat('edirom_part_', uuid:randomUUID())}" label="{$partLabel}">
+                            <part xml:id="{concat('opera_part_', uuid:randomUUID())}" label="{$partLabel}">
                                 <staffDef decls="{concat('#', $partLabelID)}"/>
                                 {$section}
                             </part>
@@ -75,7 +75,7 @@ return
                         let $partLabelID := $doc//mei:workDesc//mei:instrVoice[@label = $partLabel]/@xml:id
                         where starts-with($partMdivLabel, $mdivLabel) 
                         return
-                            <part xml:id="{concat('edirom_part_', uuid:randomUUID())}" label="{$partLabel}">
+                            <part xml:id="{concat('opera_part_', uuid:randomUUID())}" label="{$partLabel}">
                                 <staffDef decls="{concat('#', $partLabelID)}"/>
                                 {$section}
                             </part>
