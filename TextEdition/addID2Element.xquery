@@ -38,8 +38,6 @@ let $elements := $resource//*[local-name(.) = $elementLocalName][@type = 'air']
 for $element in $elements
     let $conterString := $element/text()
     let $idString := concat(lower-case(tokenize($conterString, ' ')[1]), '-', format-number(number(tokenize($conterString, ' ')[2]), '00'))
-return
-    insert node attribute xml:id {$idString} into $element 
-
-(:replace value of node $milestoneScene/@xml:id with $newSceneID:)
-
+    
+    return
+        insert node attribute xml:id {$idString} into $element
