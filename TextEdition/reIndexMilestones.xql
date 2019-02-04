@@ -1,11 +1,8 @@
 xquery version "3.0";
 
 (:~
-: make edirom concordances
-: single work
-: define first: - sources form edition's source Collection?
-                - sources form edirom edition file aka sources in navigator?
-                - sources by MEI metadata
+: Reindexing milestones in OPERA Text Editions
+: Nikolaos Beer, OPERA, 2018/19
 :)
 
 declare default element namespace "http://www.edirom.de/ns/1.3";
