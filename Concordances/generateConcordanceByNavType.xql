@@ -76,23 +76,33 @@ declare variable $refSourceDoc := doc(concat($pathToEditionContents, 'sources/',
 :)
 declare variable $ediConcType := 'fromCSV';
 
+(:~ Set raw concordance data for bar based concordance :)
+declare variable $concRawDataBars := if ($ediConcType = 'fromCSV')
+                                        then (functx:lines(unparsed-text(concat($pathToEditionContents, 'resources/Concordance/', $CSVResourceNameBars))))
+                                        else ();
+
+(:~ Set raw concordance data for text line based concordance :)
+declare variable $concRawDataLines := if ($ediConcType = 'fromCSV')
+                                        then (functx:lines(unparsed-text(concat($pathToEditionContents, 'resources/Concordance/', $CSVResourceNameLines))))
+                                        else ();
+
 (:~ Specify your own source list here :)
 declare variable $sourcesList := ();
 
 
 declare variable $mdivsReference := if ($ediConcType = 'sourceList')
-                        then ($refSourceDoc//mei:mdiv)
-                        else if ($ediConcType = 'fromCSV')
-                        then (
-                            let $mdivs := for $row in local:getRowsFromCSV($ediConcType, $pathToEditionContents, $CSVResourceNameBars)[position() > 1]
-                                            let $mdivLabel := tokenize($row, ';')[position() = 3]
-                                            where $mdivLabel != ''
-                                            return
-                                                $mdivLabel
-                            return
-                                distinct-values($mdivs)
-                        )
-                        else();
+                                    then ($refSourceDoc//mei:mdiv)
+                                    else if ($ediConcType = 'fromCSV')
+                                    then (
+                                        let $mdivs := for $row in $concRawDataBars[position() > 1]
+                                                        let $mdivLabel := tokenize($row, ';')[position() = 3]
+                                                        where $mdivLabel != ''
+                                                        return
+                                                            $mdivLabel
+                                        return
+                                            distinct-values($mdivs)
+                                    )
+                                    else();
                         
 declare variable $ediConcSourcesCollection :=   
     if ($ediConcType = 'sourceCollection')
@@ -131,22 +141,6 @@ declare function local:getConnectionPlistParticipantPrefix($participantSource) {
     else (concat('xmldb:exist:///db/contents/', $editionIDPrefix, $editionID, '/sources/'))
 };
 
-
-
-(:~
-: This function reads all rows from the specified CSV file
-:
-: @param $ediConcType               specified concordance type
-: @param $pathToEditionContents     path to edition's contents
-: @param $CSVResourceNameBars           CSV file name
-: @return text lines
-:)
-
-declare function local:getRowsFromCSV($ediConcType, $pathToEditionContents, $CSVResourceName) {
-    if ($ediConcType = 'fromCSV')
-    then (functx:lines(unparsed-text(concat($pathToEditionContents, 'resources/Concordance/', $CSVResourceNameBars))))
-    else ()
-};
 
 
 
