@@ -125,7 +125,7 @@ declare variable $ediConcSourcesCollection :=
     then () (: ToDo :)
     else if ($ediConcType = 'fromCSV')
     then (
-        for $siglum in local:getSourceSiglaFromCSV($ediConcType, $pathToEditionContents, $CSVResourceNameBars) 
+        for $siglum in local:getSourceSiglaFromCSV($ediConcType, $concRawDataBars)
         return
             (collection(concat($pathToEditionContents, 'sources/?select=*.xml'))[.//mei:identifier[@type = 'siglum'] = $siglum] | collection(concat($pathToEditionContents, 'text/?select=*.xml'))[.//tei:fileDesc//tei:title[@type = 'siglum'] = $siglum])
     )
@@ -153,9 +153,9 @@ declare function local:getConnectionPlistParticipantPrefix($participantSource) {
 : @return list of source sigla
 :)
 
-declare function local:getSourceSiglaFromCSV($ediConcType, $pathToEditionContents, $CSVResourceNameBars) {
+declare function local:getSourceSiglaFromCSV($ediConcType, $concRawDataBars) {
     if ($ediConcType = 'fromCSV')
-    then ((tokenize(local:getRowsFromCSV($ediConcType, $pathToEditionContents, $CSVResourceNameBars)[1], ';')[position() > 4 and position() < 11]))
+    then ((tokenize($concRawDataBars[1], ';')[position() > 4 and position() < 11]))
     else ()
 };
                    
@@ -398,7 +398,7 @@ let $concordancesCSVFile := element concordances {
                                                 element connections {
                                                     attribute label {'Bar'},
                                                     let $CSVResourceName := $CSVResourceNameBars
-                                                    for $row in local:getRowsFromCSV($ediConcType, $pathToEditionContents, $CSVResourceName)[position() > 1][tokenize(., ';')[position() = 3] = $mdiv]
+                                                    for $row in $concRawDataBars[position() > 1][tokenize(., ';')[position() = 3] = $mdiv]
                                                     let $rowT := tokenize($row, ';')
                                                     let $connectionNo := $rowT[position() = 4]
                                                     let $connectionParticipantNos := $rowT[position() > 4 and position() < 11]
