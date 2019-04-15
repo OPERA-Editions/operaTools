@@ -512,14 +512,16 @@ let $concordancesCSVFile := element concordances {
                                 element concordance {
                                     attribute name {'Navigation by number &amp; bar'},
                                     element groups {
+                                        let $connectionType := 'bars'
+                                        let $concRawData := local:getConcRawData($ediConcType, $connectionType)
+                                        let $ediConcSourcesCollection := local:getEdiConcSourcesCollectionFromCSVData($concRawData, $connectionType)
                                         for $mdiv in $mdivsReference
                                         return
                                             element group {
                                                 attribute name {$mdiv},
                                                 element connections {
                                                     attribute label {'Bar'},
-                                                    let $CSVResourceName := $CSVResourceNameBars
-                                                    for $row in $concRawDataBars[position() > 1][tokenize(., ';')[position() = 3] = $mdiv]
+                                                    for $row in $concRawData[position() > 1][tokenize(., ';')[position() = 3] = $mdiv]
                                                     let $rowT := tokenize($row, ';')
                                                     let $connectionNo := $rowT[position() = 4]
                                                     let $connectionParticipantNos := $rowT[position() > 4 and position() < 11]
