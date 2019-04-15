@@ -36,6 +36,9 @@ declare variable $CSVResourceNameBars as xs:string := 'concordance_bars_rawData.
 (:~ Resource fiel name of virtual concordance table (as CSV) (lines mode):)
 declare variable $CSVResourceNameLines as xs:string := 'concordance_lines_rawData.csv';
 
+(:~ Resource fiel name of virtual concordance table (as CSV) (lines mode):)
+declare variable $CSVResourceNameScenes as xs:string := 'concordance_scenes_rawData.csv';
+
 (:~ The relative path to the Edition's contents seen from this xQuery :)
 declare variable $basePathToEditionContents as xs:string := '../../';
 
