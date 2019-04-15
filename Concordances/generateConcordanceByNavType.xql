@@ -551,10 +551,25 @@ let $concordancesCSVFile := element concordances {
                                         element group {
                                             attribute name {'Text line'},
                                             element connections {
-                                                (:attribute label {'Text line'},
-                                                let $CSVResourceName := $CSVResourceNameLines
+                                                let $connectionType := 'lines'
+                                                let $concRawData := local:getConcRawData($ediConcType, $connectionType)
+                                                let $ediConcSourcesCollection := local:getEdiConcSourcesCollectionFromCSVData($concRawData, $connectionType)
                                                 
-                                                for $row in :)
+                                                for $row in $concRawData[position() > 1]
+                                                    let $rowT := tokenize($row, ';')
+                                                    let $mdiv := $rowT[position() = 3]
+                                                    let $connectionNo := $rowT[position() = 4]
+                                                    let $connectionParticipantNos := $rowT[position() > 4 and position() < 9]
+                                                    let $plist := for $connectionParticipantNo at $pos in $connectionParticipantNos
+                                                                    let $participantSource := $ediConcSourcesCollection[$pos]
+                                                                    where $pos < 5 and normalize-space($connectionParticipantNo) != ''
+                                                                    return
+                                                                        local:getConectionPlistParticipantString($participantSource, $mdiv, $connectionParticipantNo)
+                                                        return
+                                                            element connection {
+                                                                attribute name {$connectionNo},
+                                                                attribute plist {$plist}
+                                                                }
                                             }
                                         }
                                     }
