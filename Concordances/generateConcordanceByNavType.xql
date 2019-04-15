@@ -123,17 +123,49 @@ declare variable $ediConcSourcesCollection :=
     then () (: ToDo, with respect to TEI :)
     else if ($ediConcType = 'sourcesList')
     then () (: ToDo :)
+    (: Data from CSV will be processed later :)
     else if ($ediConcType = 'fromCSV')
-    then (
-        for $siglum in local:getSourceSiglaFromCSV($ediConcType, $concRawDataBars)
-        return
-            (collection(concat($pathToEditionContents, 'sources/?select=*.xml'))[.//mei:identifier[@type = 'siglum'] = $siglum] | collection(concat($pathToEditionContents, 'text/?select=*.xml'))[.//tei:fileDesc//tei:title[@type = 'siglum'] = $siglum])
-    )
+    then ()
     else();
 
 
 (: MODULE FUNCTIONS :)
 
+
+declare function local:getEdiConcSourcesCollectionFromCSVData($concRawData, $connectionType) {
+    for $siglum in local:getSourceSiglaFromCSV($concRawData, $connectionType)
+    return
+        (collection(concat($pathToEditionContents, 'sources/?select=*.xml'))[.//mei:identifier[@type = 'siglum'] = $siglum] | collection(concat($pathToEditionContents, 'text/?select=*.xml'))[.//tei:fileDesc//tei:title[@type = 'siglum'] = $siglum])
+};
+
+(:~
+: This function determines whether to read bar based or line based csv raw data
+:
+: @param $ediConcType               specified concordance type
+: @param $connectionType            specified type of connections
+: @return CSV raw data
+:)
+
+declare function local:getConcRawData($ediConcType, $connectionType){
+    if ($ediConcType = 'fromCSV' and $connectionType = 'bars')
+    then ($concRawDataBars)
+    else if ($ediConcType = 'fromCSV' and $connectionType = 'lines')
+    then ($concRawDataLines)
+    else if ($ediConcType = 'fromCSV' and $connectionType = 'scenes')
+    then ($concRawDataScenes)
+    else ()
+};
+
+
+
+
+(:~
+: This function determines collection paths for music or text sources
+:
+: @param $ediConcType               specified concordance type
+: @param $connectionType            specified type of connections
+: @return CSV raw data
+:)
 
 declare function local:getConnectionPlistParticipantPrefix($participantSource) {
     if ($participantSource/tei:TEI)
