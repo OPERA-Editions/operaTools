@@ -253,16 +253,100 @@ declare function local:getConectionPlistParticipantString($participantSource, $m
         else (
             let $participantSourceMeasures2Connect := if ($participantSource/mei:mei/@xml:id = 'opera_source_6b03f75b-50eb-410b-b729-39c1725bc1cf')
                                                         then ($participantSource//mei:measure[@n = normalize-space($connectionParticipantNo)])
+                                                        else if (($participantSource/mei:mei/@xml:id = 'opera_edition_3578ef42-491f-4bc1-a426-728553f3cdba' or $participantSource/mei:mei/@xml:id = 'opera_source_786a4e99-aacd-459d-a40a-79c894e92497') and contains($connectionParticipantNo, ','))
+                                                        then (
+                                                            if (contains(substring-before($connectionParticipantNo, ','), '-'))
+                                                            then (
+                                                                $participantSource//mei:measure[.//ancestor::mei:mdiv[@label = $mdiv]][number(@n) >= number(substring-before($connectionParticipantNo, '-')) and number(@n) <= number(substring-before(substring-after($connectionParticipantNo, '-'), ','))]
+                                                            )
+                                                            else($participantSource//mei:measure[.//ancestor::mei:mdiv[@label = $mdiv]][@n = normalize-space(substring-before($connectionParticipantNo, ','))])
+                                                        )
+                                                        else if (($participantSource/mei:mei/@xml:id = 'opera_edition_3578ef42-491f-4bc1-a426-728553f3cdba' or $participantSource/mei:mei/@xml:id = 'opera_source_786a4e99-aacd-459d-a40a-79c894e92497') and contains($connectionParticipantNo, '-'))
+                                                        then (
+                                                            $participantSource//mei:measure[.//ancestor::mei:mdiv[@label = $mdiv]][number(@n) >= number(substring-before($connectionParticipantNo, '-')) and number(@n) <= number(substring-after($connectionParticipantNo, '-'))]
+                                                        )
                                                         else if ($participantSource//tei:TEI/@xml:id = 'TextEdition')
                                                         then ($participantSource//tei:l[number(@n) = number(functx:substring-before-if-contains($connectionParticipantNo, ','))] | $participantSource//tei:lb[@type = 'lineNum'][number(@n) = number(functx:substring-before-if-contains($connectionParticipantNo, ','))])
-                                                        else ($participantSource//mei:measure[@n = normalize-space($connectionParticipantNo) and .//ancestor::mei:mdiv[@label = $mdiv]])
+                                                        else ($participantSource//mei:measure[.//ancestor::mei:mdiv[@label = $mdiv]][@n = normalize-space($connectionParticipantNo)])
             return
                 if (count($participantSourceMeasures2Connect) > 1)
-                then (concat(local:getConnectionPlistParticipantPrefix($participantSource), $participantSourceID, '.xml#', $participantSourceMeasures2Connect[1]/@xml:id/string(), '?tstamp2=', string(count($participantSourceMeasures2Connect)), 'm+0 '))
-                else (concat(local:getConnectionPlistParticipantPrefix($participantSource), $participantSourceID, '.xml#', $participantSourceMeasures2Connect/@xml:id/string(), ' '))
+                then (concat(local:getConnectionPlistParticipantPrefix($participantSource), $participantSourceID, '.xml#', $participantSourceMeasures2Connect[1]/@xml:id/string(), '?tstamp2=', string(count($participantSourceMeasures2Connect) - 1), 'm+0 '))
+                else if (count($participantSourceMeasures2Connect) = 1)
+                then (concat(local:getConnectionPlistParticipantPrefix($participantSource), $participantSourceID, '.xml#', $participantSourceMeasures2Connect/@xml:id/string(), ' '))
+                else ()
         )
 };
 
+
+
+
+(:~
+: This function returns an element
+:
+: @param $participantSource                     the tei file
+: @param $connectionParticipantNo               searched measure number
+:
+: @return element
+:)
+
+declare function local:getTextSourceSceneParticipant($participantSource, $connectionParticipantName) {
+    let $act := local:roman2arabic(substring-after(substring-before($connectionParticipantName, ','), 'Act '))
+    let $scene := local:roman2arabic(substring-after($connectionParticipantName, 'Scene '))
+    
+    return
+        $participantSource//tei:div[@type = 'act'][@n = $act]/tei:div[@type = 'scene'][@n = $scene]/tei:head[@type = 'scene']
+
+
+};
+
+
+
+
+declare function local:roman2arabic($item) {
+    switch ($item)
+                            case 'I' return '1'
+                            case 'II' return '2'
+                            case 'III' return '3'
+                            case 'IV' return '4'
+                            case 'V' return '5'
+                            case 'VI' return '6'
+                            case 'VII' return '7'
+                            case 'VIII' return '8'
+                            case 'IX' return '9'
+                            case 'X' return '10'
+                            case 'XI' return '11'
+                            case 'XII' return '12'
+                            case 'XIII' return '13'
+                            default return ''
+
+};
+
+
+(:~
+: This function returns a plist participant uri string for scene connections
+:
+: @param $participantSource                     the mei/tei file
+: @param $mdiv                                  name of actual mdiv
+: @param $connectionParticipantName             searched scene
+:
+: @return Plist participant uri string
+:)
+
+declare function local:getSceneConectionPlistParticipantString($participantSource, $mdiv, $connectionParticipantName) {
+    let $participantSourceID := local:getParticipantSourceID($participantSource)
+    let $participantSourceMeasures2Connect := if ($participantSource//tei:TEI/@xml:id = 'TextEdition')
+    
+                                                then (local:getTextSourceSceneParticipant($participantSource, $connectionParticipantName))
+                                                else ($participantSource//mei:measure[.//ancestor::mei:mdiv[@label = $mdiv]][@n = normalize-space($connectionParticipantName)])
+    return
+        if (count($participantSourceMeasures2Connect) > 1)
+                then (concat(local:getConnectionPlistParticipantPrefix($participantSource), $participantSourceID, '.xml#', $participantSourceMeasures2Connect[1]/@xml:id/string(), '?tstamp2=', string(count($participantSourceMeasures2Connect) - 1), 'm+0 '))
+                else if (count($participantSourceMeasures2Connect) = 1)
+                then (concat(local:getConnectionPlistParticipantPrefix($participantSource), $participantSourceID, '.xml#', $participantSourceMeasures2Connect/@xml:id/string(), ' '))
+                else ()
+                
+
+};
                                     
 (: OPERA-Spezialbehandlung :)
 
