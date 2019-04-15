@@ -74,14 +74,14 @@ declare variable $refSourceDoc as document-node() := doc(concat($pathToEditionCo
         - read concordance from CSV file.
             Value: 'fromCSV'
 :)
-declare variable $ediConcType := 'fromCSV';
+declare variable $ediConcType as xs:string := 'fromCSV';
 
-(:~ Set raw concordance data for bar based concordance :)
+(:~ Set raw concordance data for bar based concordance from CSV :)
 declare variable $concRawDataBars := if ($ediConcType = 'fromCSV')
                                         then (functx:lines(unparsed-text(concat($pathToEditionContents, 'resources/Concordance/', $CSVResourceNameBars))))
                                         else ();
 
-(:~ Set raw concordance data for text line based concordance :)
+(:~ Set raw concordance data for text line based concordance from CSV :)
 declare variable $concRawDataLines := if ($ediConcType = 'fromCSV')
                                         then (functx:lines(unparsed-text(concat($pathToEditionContents, 'resources/Concordance/', $CSVResourceNameLines))))
                                         else ();
