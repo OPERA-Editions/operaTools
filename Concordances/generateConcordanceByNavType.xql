@@ -186,14 +186,14 @@ declare function local:getConnectionPlistParticipantPrefix($participantSource) {
 :
 : @param $ediConcType               specified concordance type
 : @param $pathToEditionContents     path to edition's contents
-: @param $CSVResourceNameBars           CSV file name
+: @param $CSVResourceNameBars       CSV file name
 : @return list of source sigla
 :)
 
-declare function local:getSourceSiglaFromCSV($ediConcType, $concRawDataBars) {
-    if ($ediConcType = 'fromCSV')
-    then ((tokenize($concRawDataBars[1], ';')[position() > 4 and position() < 11]))
-    else ()
+declare function local:getSourceSiglaFromCSV($concRawData, $connectionType) {
+    if ($connectionType = 'scenes')
+    then (tokenize($concRawData[1], ';')[position() > 2 and position() < 8])
+    else (tokenize($concRawData[1], ';')[position() > 4 and position() < 11])
 };
                    
 
