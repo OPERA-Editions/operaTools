@@ -85,6 +85,11 @@ declare variable $concRawDataBars := if ($ediConcType = 'fromCSV')
 declare variable $concRawDataLines := if ($ediConcType = 'fromCSV')
                                         then (functx:lines(unparsed-text(concat($pathToEditionContents, 'resources/Concordance/', $CSVResourceNameLines))))
                                         else ();
+                                        
+(:~ Set raw concordance data for scenes based concordance from CSV :)
+declare variable $concRawDataScenes := if ($ediConcType = 'fromCSV')
+                                        then (functx:lines(unparsed-text(concat($pathToEditionContents, 'resources/Concordance/', $CSVResourceNameScenes))))
+                                        else ();
 
 (:~ Specify your own source list here :)
 declare variable $sourcesList := ();
