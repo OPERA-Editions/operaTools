@@ -43,25 +43,22 @@ declare variable $CSVResourceNameScenes as xs:string := 'concordance_scenes_rawD
 declare variable $basePathToEditionContents as xs:string := '../../';
 
 (:~ Edition contents base path :)
-declare variable $pathToEditionContents := concat($basePathToEditionContents, $editionIDPrefix, $editionID, '/');
+declare variable $pathToEditionContents as xs:string := concat($basePathToEditionContents, $editionIDPrefix, $editionID, '/');
 
 (:~ Edirom edition doc :)
-declare variable $editionEdiromDoc:= doc(concat($pathToEditionContents, $editionIDPrefix, $editionID, '.xml'));
+declare variable $editionEdiromDoc as document-node() := doc(concat($pathToEditionContents, $editionIDPrefix, $editionID, '.xml'));
 
 (:~ @xml:id of the MEI work file :)
 declare variable $workID as xs:string := 'opera_work_d471efd4-7c6f-4e07-9195-8a6fd713f227';
 
 (:~ Work doc :)
-declare variable $workDoc := doc(concat($pathToEditionContents, 'works/', $workID, '.xml'));
-
-(:~ Plist member prefix string to the db's source collection :)
-(:declare variable $connectionPlistParticipantPrefix := concat('xmldb:exist:///db/contents/', $editionIDPrefix, $editionID, '/sources/');:)
+declare variable $workDoc as document-node() := doc(concat($pathToEditionContents, 'works/', $workID, '.xml'));
 
 (:~ @xml:id of the concordance reference source – mostly the edition's "source" :)
-declare variable $referenceSourceID := 'edirom_source_786a4e99-aacd-459d-a40a-79c894e92497';
+declare variable $referenceSourceID as xs:string := 'edirom_source_786a4e99-aacd-459d-a40a-79c894e92497';
 
 (:~ Reference source doc :)
-declare variable $refSourceDoc := doc(concat($pathToEditionContents, 'sources/', $referenceSourceID, '.xml'));
+declare variable $refSourceDoc as document-node() := doc(concat($pathToEditionContents, 'sources/', $referenceSourceID, '.xml'));
 
 (:~ Type of concordance. Choose between:
         - generating concordance based on all source files
