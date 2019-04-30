@@ -7,6 +7,7 @@
   xmlns:edi="http://www.edirom.de/ns/1.3"
   xmlns:uuid="java:java.util.UUID"
   xmlns:functx="http://www.functx.com"
+  xmlns:local="http://edition.opera.uni-frankfurt.de/local"
   xmlns="http://www.music-encoding.org/ns/mei"
   exclude-result-prefixes="xs xd"
   version="3.0">
@@ -88,6 +89,50 @@
       "/>
     
   </xsl:function>
+  
+  <xd:doc>
+    <xd:desc/>
+    <xd:param name="arg"/>
+    <xd:param name="delim"/>
+  </xd:doc>
+  
+  <xsl:function name="functx:substring-before-if-contains" as="xs:string?"
+    xmlns:functx="http://www.functx.com">
+    <xsl:param name="arg" as="xs:string?"/>
+    <xsl:param name="delim" as="xs:string"/>
+    
+    <xsl:sequence select="
+      if (contains($arg,$delim))
+      then substring-before($arg,$delim)
+      else $arg
+      "/>
+    
+  </xsl:function>
+  
+  
+  <xd:doc>
+    <xd:desc/>
+    <xd:param name="arg"/>
+  </xd:doc>
+  <xsl:function name="local:transformToRoman" as="xs:string">
+    <xsl:param name="arg" as="xs:string?"/>
+    <xsl:choose>
+      <xsl:when test="$arg = '1'">I</xsl:when>
+      <xsl:when test="$arg = '2'">II</xsl:when>
+      <xsl:when test="$arg = '3'">III</xsl:when>
+      <xsl:when test="$arg = '4'">IV</xsl:when>
+      <xsl:when test="$arg = '5'">V</xsl:when>
+      <xsl:when test="$arg = '6'">VI</xsl:when>
+      <xsl:when test="$arg = '7'">VII</xsl:when>
+      <xsl:when test="$arg = '8'">VIII</xsl:when>
+      <xsl:when test="$arg = '9'">IX</xsl:when>
+      <xsl:when test="$arg = '10'">X</xsl:when>
+      <xsl:when test="$arg = '11'">XI</xsl:when>
+      <xsl:when test="$arg = '12'">XII</xsl:when>
+      <xsl:when test="$arg = '13'">XIII</xsl:when>
+      <xsl:otherwise>Fehler!</xsl:otherwise>
+    </xsl:choose>
+  </xsl:function>
     
   <!-- ID of MEI work file. -->
   <xsl:variable name="workID" as="xs:string">opera_work_d471efd4-7c6f-4e07-9195-8a6fd713f227</xsl:variable>
@@ -128,7 +173,8 @@
   <xsl:variable name="editionConcordances" as="node()*">
     <xsl:choose>
       <xsl:when test="$editionConcordanceType = 'music'">
-        <xsl:copy-of select="$editionDoc//edi:work[@xml:id = $workID]//edi:concordances//edi:concordance[1]"/>
+        <!--<xsl:copy-of select="$editionDoc//edi:work[@xml:id = $workID]//edi:concordances//edi:concordance[1]"/>-->
+        <xsl:copy-of select="$editionDoc//edi:work[@xml:id = $workID]//edi:concordance[@name = 'Navigation by number &amp; bar']"/>
       </xsl:when>
       <xsl:when test="$editionConcordanceType = 'text'">
         <xsl:copy-of select="$editionDoc//edi:work[@xml:id = $workID]//edi:concordances//edi:concordance[2]"/>
@@ -164,7 +210,7 @@
     <xsl:element name="annot">
       <xsl:attribute name="type">criticalCommentary</xsl:attribute>
       
-      <xsl:for-each select="(//tei:table[@xml:id='Table1']/tei:row)[position() > 1]"><!-- position()>1 | 56-->
+      <xsl:for-each select="(//tei:table[@xml:id='Table1']/tei:row)[position() > 1 and (./tei:cell != '')]"><!-- position()>1 | 56-->
         <xsl:variable name="no" select="tei:cell[1]" as="xs:string"/>
         
         <!-- Annotation-ID -->
@@ -175,7 +221,7 @@
         <xsl:variable name="table.number" select="normalize-space(tei:cell[4])" as="xs:string"/>
         
         <!-- Taktangaben -->
-        <xsl:variable name="bar_first" select="normalize-space(tei:cell[5])" as="xs:string"/>
+        <xsl:variable name="bar_first" select="functx:substring-before-if-contains(normalize-space(tei:cell[5]), ',')" as="xs:string"/>
         <xsl:variable name="bar_last" select="normalize-space(tei:cell[6])" as="xs:string"/>
         
         <!-- Textangaben -->
@@ -200,6 +246,9 @@
               <xsl:when test=". = 'Vl. II'">
                 <xsl:value-of select="'Violino secondo'"/>
               </xsl:when>
+              <xsl:when test=". = 'Va.'">
+                <xsl:value-of select="'Viola'"/>
+              </xsl:when>
               <xsl:when test=". = 'Va. I'">
                 <xsl:value-of select="'Viola'"/>
               </xsl:when>
@@ -210,7 +259,7 @@
                 <xsl:value-of select="'Viola'"/>
               </xsl:when>
               <xsl:when test=". = 'Bassi'">
-                <xsl:value-of select="'Violoncello e Contraviolone'"/>
+                <xsl:value-of select="'Bassi'"/>
               </xsl:when>
               <xsl:when test=". = 'Vc.'">
                 <xsl:value-of select="'Violoncello e Contraviolone'"/>
@@ -222,10 +271,10 @@
                 <xsl:value-of select="'Flauto secondo'"/>
               </xsl:when>
               <xsl:when test=". = 'Ob. I'">
-                <xsl:value-of select="'Oboe primo'"/>
+                <xsl:value-of select="'Hautboy Primo'"/>
               </xsl:when>
               <xsl:when test=". = 'Ob. II'">
-                <xsl:value-of select="'Oboe secondo'"/>
+                <xsl:value-of select="'Hautboy Secondo'"/>
               </xsl:when>
               <xsl:when test=". = 'Fg. I'">
                 <xsl:value-of select="'Fagotto primo'"/>
@@ -315,18 +364,34 @@
                 </xsl:when>
                 
                 <!-- Ist es eine takt- oder seg-basierte Anmerkung? -->
-                <xsl:when test="$bar_first != '' or $textLine_first != ''">
+                <xsl:when test="($bar_first != '') or ($textLine_first != '')">
                   
                   <!-- Wie heißt der zugehörige mdiv? -->
-                  <xsl:variable name="actualMDIV" select="normalize-space($table.actScene)" as="xs:string"/>
+                  <xsl:variable name="actualMDIV" select="normalize-space($table.number)" as="xs:string"/>
                   <!-- Die gesuchte Konkordanz: -->
   <!--                <xsl:variable name="actualConc" select="$editionConcordances[@name = $actualMDIV]" as="element()"/>-->
-                  <xsl:variable name="actualConcGroup" select="$editionConcordances//edi:group[@name = $actualMDIV]" as="element()"/>
+                  <xsl:variable name="actualConcGroup" as="element()">
+                    <xsl:choose>
+                      <!-- Spezialbehandlung, wenn im „Musik-KB“ Textanmerkungen auftauchen -->
+                      <xsl:when test="($bar_first = '') and ($textLine_first != '')">
+                        <xsl:copy-of select="$editionDoc//edi:work[@xml:id = $workID]//edi:concordances//edi:concordance[2]//edi:group[@name = 'Text line']"/>
+                      </xsl:when>
+                      <!-- Sollte der Normalfall im „Musik-KB“ sein! -->
+                      <xsl:when test="$bar_first != ''">
+                        <xsl:copy-of select="$editionConcordances//edi:group[@name = $actualMDIV]"/>
+                      </xsl:when>
+                    </xsl:choose>
+                  </xsl:variable>
                   <!-- Teilnehmer der Startangabe -->
                   <xsl:variable name="concConnectionStart" as="element()">
                     <xsl:choose>
-                      <xsl:when test="$editionConcordanceType = 'music'">
-                        <xsl:copy-of select="$actualConcGroup//edi:connection[@name = $bar_first] | $actualConcGroup//edi:connection[@name = concat('seg ', $textLine_first)]"/>
+                      <!-- Spezialbehandlung, wenn im „Musik-KB“ Textanmerkungen auftauchen -->
+                      <xsl:when test="($editionConcordanceType = 'music') and (($bar_first = '') and ($textLine_first != ''))">
+                        <xsl:copy-of select="$actualConcGroup//edi:connection[@name = $textLine_first] | $actualConcGroup//edi:connection[@name = concat('line ', $textLine_first)]"/>
+                      </xsl:when>
+                      <!-- Sollte der Normalfall im „Musik-KB“ sein! -->
+                      <xsl:when test="($editionConcordanceType = 'music') and ($bar_first != '')">
+                        <xsl:copy-of select="$actualConcGroup//edi:connection[@name = $bar_first] | $actualConcGroup//edi:connection[@name = concat('line ', $textLine_first)]"/>
                       </xsl:when>
                       <xsl:when test="$editionConcordanceType = 'text'">
                         <xsl:copy-of select="$actualConcGroup//edi:connection[@name = $textLine_first]"/>
@@ -334,7 +399,7 @@
                     </xsl:choose>
                   </xsl:variable>
                   
-                  <xsl:variable name="concPlistStart" select="$concConnectionStart/@plist"/>
+                  <xsl:variable name="concPlistStart" select="normalize-space($concConnectionStart/@plist)"/>
                   <xsl:variable name="concPlistStartT" select="tokenize($concPlistStart,' ')"/>
                   
                   <!--  DIE QUELLEN FINDEN: -->
@@ -356,7 +421,9 @@
                             <xsl:variable name="concPlistStartTMemberSearch" select="."/>
                             
                             <!-- Siglum des aktuellen Konkordanzteilnehmers-->
-                            <xsl:variable name="concPlistStartTMemberSearchSiglum" select="doc(concat($pathToEditionContents, '/', substring-after(substring-before($concPlistStartTMemberSearch, '#'), concat($editionIDPrefix, $editionID, '/')), '/'))/mei:mei//mei:identifier[@type = 'siglum']/text() | doc(concat($pathToEditionContents, '/', substring-after(substring-before($concPlistStartTMemberSearch, '#'), concat($editionIDPrefix, $editionID, '/')), '/'))/tei:TEI//tei:altIdentifier/tei:idno" as="xs:string"/>
+                            <xsl:variable name="concPlistStartTMemberSearchSiglum" select="doc(concat($pathToEditionContents, '/', substring-after(substring-before($concPlistStartTMemberSearch, '#'), concat($editionIDPrefix, $editionID, '/')), '/'))/mei:mei//mei:identifier[@type = 'siglum']/text() |
+                                                                                            doc(concat($pathToEditionContents, '/', substring-after(substring-before($concPlistStartTMemberSearch, '#'), concat($editionIDPrefix, $editionID, '/')), '/'))/tei:TEI//tei:altIdentifier/tei:idno | 
+                                                                                            doc(concat($pathToEditionContents, '/', substring-after(substring-before($concPlistStartTMemberSearch, '#'), concat($editionIDPrefix, $editionID, '/')), '/'))/tei:TEI//tei:title[@type = 'siglum']/text()" as="xs:string"/>
                             <xsl:choose>
                               
                               <!-- Ist referenziertes Siglum = Siglum des Konkordanzteilnehmers? -->
@@ -369,7 +436,7 @@
                                   </xsl:when>
                                   
                                   <!-- Sind hier Stimmen referenziert? Dann mdiv, Taktnummern, Stimme(n) und Quelle identifizieren -->
-                                  <xsl:when test="contains($concPlistStartTMemberSearch, 'measure_edirom_mdiv_')">
+                                  <xsl:when test="contains($concPlistStartTMemberSearch, 'measure_opera_mdiv_')">
                                     
                                     <!-- mdivID -->
                                     <xsl:variable name="mdivID" select="functx:substring-before-last(substring-after($concPlistStartTMemberSearch, '#measure_'), '_')"/>
@@ -489,7 +556,8 @@
                                               
                                               <!-- Nur TAKT -->
                                               <xsl:otherwise>
-                                                <xsl:variable name="measureIDs" select=".[matches(@n, $mdivIdMeasureNo)]/@xml:id"/>
+                                                <!--<xsl:variable name="measureIDs" select=".[matches(@n, $mdivIdMeasureNo)]/@xml:id"/>-->
+                                                <xsl:variable name="measureIDs" select=".[@n = $mdivIdMeasureNo]/@xml:id"/>
                                                 <xsl:for-each select="$measureIDs">
                                                   <xsl:value-of select="concat(./string(), ' ')"/>
                                                 </xsl:for-each>
@@ -575,17 +643,19 @@
                           </xsl:for-each>
                         </xsl:variable>
                         
-                        <xsl:variable name="concPlistsJoinedT" select="tokenize(string-join($concPlistsJoined, ' '), ' ')"/>
+                        <xsl:variable name="concPlistsJoinedT" select="tokenize(normalize-space(string-join($concPlistsJoined, ' ')), ' ')"/>
                         
                         <xsl:for-each select="$sourcesT">
                           <xsl:variable name="sourceSearch" select="."/>
                           <xsl:for-each select="$concPlistsJoinedT">
                             
-                              <!-- URI des aktuellen Konkordanzteilnehmers -->
-                              <xsl:variable name="concPlistsJoinedTMemberSearch" select="."/>
+                            <!-- URI des aktuellen Konkordanzteilnehmers -->
+                            <xsl:variable name="concPlistsJoinedTMemberSearch" select="."/>
                             
-                              <!-- Siglum des aktuellen Konkordanzteilnehmers-->
-                            <xsl:variable name="concPlistsJoinedTMemberSearchSiglum" select="doc(concat($pathToEditionContents, '/', substring-after(substring-before($concPlistsJoinedTMemberSearch, '#'), concat($editionIDPrefix, $editionID, '/')), '/'))/mei:mei//mei:identifier[@type = 'siglum']/text() | doc(concat($pathToEditionContents, '/', substring-after(substring-before($concPlistsJoinedTMemberSearch, '#'), concat($editionIDPrefix, $editionID, '/')), '/'))/tei:TEI//tei:altIdentifier/tei:idno/text()" as="xs:string"/>
+                            <!-- Siglum des aktuellen Konkordanzteilnehmers-->
+                            <xsl:variable name="concPlistsJoinedTMemberSearchSiglum" select="doc(concat($pathToEditionContents, '/', substring-after(substring-before($concPlistsJoinedTMemberSearch, '#'), concat($editionIDPrefix, $editionID, '/')), '/'))/mei:mei//mei:identifier[@type = 'siglum']/text() |
+                                                                                              doc(concat($pathToEditionContents, '/', substring-after(substring-before($concPlistsJoinedTMemberSearch, '#'), concat($editionIDPrefix, $editionID, '/')), '/'))/tei:TEI//tei:altIdentifier/tei:idno/text()  | 
+                                                                                              doc(concat($pathToEditionContents, '/', substring-after(substring-before($concPlistsJoinedTMemberSearch, '#'), concat($editionIDPrefix, $editionID, '/')), '/'))/tei:TEI//tei:title[@type = 'siglum']/text()" as="xs:string"/>
                             
                               <xsl:choose>
                                 
@@ -598,7 +668,7 @@
                                     <xsl:when test="contains($concPlistsJoinedTMemberSearch, '_seg')"/>
                                     
                                     <!-- Sind hier Stimmen referenziert? Dann mdiv, Taktnummern, Stimme(n) und Quelle identifizieren -->
-                                    <xsl:when test="contains($concPlistsJoinedTMemberSearch, 'measure_edirom_mdiv_')">
+                                    <xsl:when test="contains($concPlistsJoinedTMemberSearch, 'measure_opera_mdiv_')">
                                       
                                       <!-- mdivID -->
                                       <xsl:variable name="mdivID" select="functx:substring-before-last(substring-after($concPlistsJoinedTMemberSearch, '#measure_'), '_')"/>
@@ -820,7 +890,7 @@
                 </xsl:for-each>
               </xsl:if>
             </xsl:variable>
-            <xsl:value-of select="$plist"/>
+            <xsl:value-of select="distinct-values(tokenize(normalize-space($plist), ' '))"/>
             <!--<xsl:variable name="plistSorted">
               <xsl:for-each select="tokenize(normalize-space($plist), ' ')">
                 
@@ -841,41 +911,95 @@
                 <!-- no bars, no segs., so leave empty… -->
                 <xsl:when test="$bar_first = '' and $bar_last = '' and $textLine_first = '' and $textLine_last = ''">Hier passt etwas nicht. Bitte prüfen!</xsl:when>
                 <xsl:when test="$bar_first = '' and $bar_last = '' and $textLine_first != '' and $textLine_last = ''">
-                  <xsl:value-of select="concat('seg ', $textLine_first, if ($spotTitle) then (concat(', ', $spotTitle)) else ())"/>
+                  <xsl:value-of select="concat('line ', $textLine_first, if ($spotTitle) then (concat(', ', $spotTitle)) else ())"/>
                 </xsl:when>
+                
+                
                 <!-- no bars, different segs. -->
                 <xsl:when test="$bar_first = '' and $bar_last = '' and $textLine_first != $textLine_last">
-                  <xsl:value-of select="concat('seg ', $textLine_first, '–', $textLine_last, if ($spotTitle) then (concat(', ', $spotTitle)) else ())"/>
+                  <xsl:value-of select="concat('lines ', $textLine_first, '–', $textLine_last, if ($spotTitle) then (concat(', ', $spotTitle)) else ())"/>
                 </xsl:when>
-                <!-- no bars, same segs. -->
+                <!-- no bars, same  segs. -->
                 <xsl:when test="$bar_first = '' and $bar_last = '' and $textLine_first = $textLine_last">
-                  <xsl:value-of select="concat('seg ', $textLine_first, if ($spotTitle) then (concat(', ', $spotTitle)) else ())"/>
+                  <xsl:value-of select="concat('line ', $textLine_first, if ($spotTitle) then (concat(', ', $spotTitle)) else ())"/>
                 </xsl:when>
+                
+                
                 <!-- only first bar -->
                 <xsl:when test="$bar_first != '' and $bar_last = ''">
                   <xsl:value-of select="concat('bar ', $bar_first, if ($spotTitle) then (concat(', ', $spotTitle)) else ())"/>
                 </xsl:when>
-                <!-- only first bar and first seg. -->
+                
+                <!--
+                <!-\- only first bar and first seg. -\->
                 <xsl:when test="$bar_first != '' and $bar_last = '' and $textLine_first != '' and $textLine_last = ''">
-                  <xsl:value-of select="concat('bar ', $bar_first, ', seg ', $textLine_first, if ($spotTitle) then (concat(', ', $spotTitle)) else ())"/>
-                </xsl:when>
+                  <xsl:value-of select="concat('bar ', $bar_first, ', line ', $textLine_first, if ($spotTitle) then (concat(', ', $spotTitle)) else ())"/>
+                </xsl:when>-->
+                
                 <!-- same bars -->
                 <xsl:when test="$bar_last = $bar_first">
                   <xsl:value-of select="concat('bar ', $bar_first, if ($spotTitle) then (concat(', ', $spotTitle)) else ())"/>
                 </xsl:when>
-                <!-- different bars, no segs. -->
+                
+                <!--
+                <!-\- different bars, no segs. -\->
                 <xsl:when test="$bar_last != $bar_first and $textLine_first = '' and $textLine_last = ''" >
                   <xsl:value-of select="concat('bars ', $bar_first, '–', $bar_last, if ($spotTitle) then (concat(', ', $spotTitle)) else ())"/>
+                </xsl:when>-->
+                
+                <!-- different bars -->
+                <xsl:when test="$bar_last != $bar_first" >
+                  <xsl:value-of select="concat('bars ', $bar_first, '–', $bar_last, if ($spotTitle) then (concat(', ', $spotTitle)) else ())"/>
                 </xsl:when>
-                <!-- different bars, different segs.-->
-                <xsl:when test="$bar_first != $bar_last and $textLine_first != $textLine_last">
-                  <xsl:value-of select="concat('bars ', $bar_first, '–', $bar_last, ', seg ', $textLine_first, '–', $textLine_last, if ($spotTitle) then (concat(', ', $spotTitle)) else ())"/>
-                </xsl:when>
+                
+                <!--
+                <!-\- different bars, different segs.-\->
+                <xsl:when test="$bar_first != $bar_last and ($textLine_first != '') and ($textLine_last != '')">
+                  <xsl:value-of select="concat('bars ', $bar_first, '–', $bar_last, ', lines ', $textLine_first, '–', $textLine_last, if ($spotTitle) then (concat(', ', $spotTitle)) else ())"/>
+                </xsl:when>-->
                 <!-- when anything matches, print error message: -->
                 <xsl:otherwise>Something went wrong, please check the template!</xsl:otherwise>
               </xsl:choose>
             </xsl:variable>
-            <xsl:value-of select="concat(normalize-space($table.actScene), if ($titleBarOrSegIndicator) then (concat(', ', $titleBarOrSegIndicator)) else (), if ($system) then (concat(', ', replace($system, 'Va. I/II', 'Va. I, Va. II'))) else ())"/>
+            
+            <xsl:variable name="actSceneLineIndicator">
+              <xsl:choose>
+                <!--<xsl:when test="($table.number = '') and $table.actScene and $textLine_first and $textLine_last">
+                  <xsl:value-of select="concat('Act ', local:transformToRoman(substring-before($table.actScene, '.')), ', Sc. ', local:transformToRoman(substring-after($table.actScene, '.')), '; lines ', $textLine_first, '–', $textLine_last)"/>
+                </xsl:when>-->
+                <xsl:when test="($table.number = '') and $table.actScene and $textLine_first">
+                  <xsl:value-of select="concat('Act ', local:transformToRoman(substring-before($table.actScene, '.')), ', Sc. ', local:transformToRoman(substring-after($table.actScene, '.')))"/>
+                </xsl:when>
+                <xsl:when test="$table.actScene and $textLine_first and $textLine_last">
+                  <xsl:value-of select="concat('(Act ', local:transformToRoman(substring-before($table.actScene, '.')), ', Sc. ', local:transformToRoman(substring-after($table.actScene, '.')), '; lines ', $textLine_first, '–', $textLine_last, ')')"/>
+                </xsl:when>
+                <xsl:when test="$table.actScene and $textLine_first">
+                  <xsl:value-of select="concat('(Act ', local:transformToRoman(substring-before($table.actScene, '.')), ', Sc. ', local:transformToRoman(substring-after($table.actScene, '.')), '; line ', $textLine_first, ')')"/>
+                </xsl:when>
+                <xsl:when test="$table.actScene">
+                  <xsl:value-of select="concat('(Act ', local:transformToRoman(substring-before($table.actScene, '.')), ', Sc. ', local:transformToRoman(substring-after($table.actScene, '.')), ')')"/>
+                </xsl:when>
+              </xsl:choose>
+            </xsl:variable>
+            
+            
+            <xsl:value-of select="concat(
+                                    if ($table.number)
+                                    then (concat(normalize-space($table.number), ', '))
+                                    else (),
+                                    if (not($table.number) and $table.actScene and $textLine_first)
+                                    then (concat($actSceneLineIndicator, '; '))
+                                    else (),
+                                    if ($titleBarOrSegIndicator)
+                                    then ($titleBarOrSegIndicator)
+                                    else (),
+                                    if($table.actScene and $table.number)
+                                    then (concat(' ', $actSceneLineIndicator))
+                                    else (),
+                                    if ($system)
+                                    then (concat(', ', $system))
+                                    else ())
+                                    "/>
           </xsl:element>
           <xsl:choose>
             <xsl:when test="not($note/tei:p)">
