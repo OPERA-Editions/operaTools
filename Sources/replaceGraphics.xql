@@ -23,7 +23,7 @@ let $sourceDoc := doc(concat($editionsContentsBasePath, 'sources/', $sourceID, '
 
 let $siglum := 'B'
 
-let $imageList := functx:lines(unparsed-text(concat($editionsContentsBasePath, 'resources/', $siglum, '_dimensions.csv')))
+let $imageList := functx:lines(unparsed-text(concat($editionsContentsBasePath, 'resources/', $siglum, '/', $siglum, '_dimensions.csv')))
 let $imagesFakeCount := count($imageList)
 
 let $surfaces := $sourceDoc//surface
