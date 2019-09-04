@@ -1,6 +1,6 @@
 xquery version "3.0";
 
-(: 2018-06-06, taken from Reger-Werkausgabe Project Tool Set for useage
+(: 2018-06-06, taken from Reger-Werkausgabe Project Tool Set for usage
         in the OPERA Project, to be used in oXygen with Saxon EE.
 
         2018-06-06: modified to fit OPERA needs, nbeer, OPERA
@@ -16,16 +16,16 @@ declare option saxon:output "media-type=text/xml";
 declare option saxon:output "omit-xml-declaration=yes";
 declare option saxon:output "indent=no";
 
-let $editionID := 'edition-74338557'
-let $workID := 'opera_work_4fb7f9fb-12b0-4266-8da3-3c4420c2a714'
+let $editionID := 'edition-74338558'
+let $spotCell := '12'
 
 let $contentsBasePath := concat('../../../', $editionID, '/')
 let $sourcesDocs := collection(concat($contentsBasePath, 'sources/?select=*.xml'))
 
-let $annotations := collection(concat($contentsBasePath, 'resources/?select=*.xml'))//tei:table[@xml:id='Table1']/tei:row[position() > 1 ]
+let $annotations := doc(concat($contentsBasePath, 'resources/CN/CN_LiaV_doc.xml'))//tei:table[@xml:id='Table1']/tei:row[position() > 1 ]
 
 for $annotation at $pos in $annotations
-    let $spotsT := tokenize(normalize-space($annotation//tei:cell[10]), '; ')
+    let $spotsT := tokenize(normalize-space($annotation//tei:cell[12]), '; ')
 (:    where $pos = 1:)
     return
         for $spot in $spotsT
@@ -46,4 +46,5 @@ for $annotation at $pos in $annotations
             let $spotZone := <zone xml:id="{concat('opera_zone_', $editionID, '_', $spotID)}" type="operaAnnotSpot" ulx="{$spotULX}" uly="{$spotULY}" lrx="{$spotLRX}" lry="{$spotLRY}"/>
             
             return
+(:            $spotZone:)
                 insert node $spotZone as last into $spotSurface

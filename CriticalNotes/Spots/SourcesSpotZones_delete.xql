@@ -1,6 +1,6 @@
 xquery version "3.0";
 
-(: 2018-06-06, taken from Reger-Werkausgabe Project Tool Set for useage
+(: 2018-06-06, taken from Reger-Werkausgabe Project Tool Set for usage
         in the OPERA Project, to be used in oXygen with Saxon EE.
 
         2018-06-06: modified to fit OPERA needs, nbeer, OPERA
