@@ -18,7 +18,7 @@
       <xd:p>Postprocessing needed: check for mei:rend with trailing whitespace that should come after the closing tag</xd:p>
       <xd:p><xd:b>Modified on:</xd:b> Mar 7, 2018</xd:p>
       <xd:p><xd:b>Author:</xd:b> nbeer</xd:p>
-      <xd:p>Layout of CR titles; first attempts for concordanz check.</xd:p>
+      <xd:p>Layout of CR titles; first attempts for concordance check.</xd:p>
     </xd:desc>
   </xd:doc>
   
