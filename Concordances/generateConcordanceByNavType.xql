@@ -30,13 +30,13 @@ declare variable $editionID as xs:string := '74338558';
 (:~ The prefix part ('edtion-' etc.) of the Edirom edition's @xml:id value :)
 declare variable $editionIDPrefix as xs:string := 'edition-';
 
-(:~ Resource fiel name of virtual concordance table (as CSV) (bars mode):)
+(:~ Resource file name of virtual concordance table (as CSV) (bars mode):)
 declare variable $CSVResourceNameBars as xs:string := 'concordance_bars_rawData.csv';
 
-(:~ Resource fiel name of virtual concordance table (as CSV) (lines mode):)
+(:~ Resource file name of virtual concordance table (as CSV) (lines mode):)
 declare variable $CSVResourceNameLines as xs:string := 'concordance_lines_rawData.csv';
 
-(:~ Resource fiel name of virtual concordance table (as CSV) (lines mode):)
+(:~ Resource file name of virtual concordance table (as CSV) (lines mode):)
 declare variable $CSVResourceNameScenes as xs:string := 'concordance_scenes_rawData.csv';
 
 (:~ The relative path to the Edition's contents seen from this xQuery :)
