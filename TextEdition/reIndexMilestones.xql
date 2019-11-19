@@ -21,15 +21,15 @@ declare option saxon:output "indent=yes";
 let $editionID := 'edition-74338558'
 
 (: Name of Text Edition file :)
-let $textEditionFileNameString := 'LiaV_TE.xml'
+let $textEditionFileNameString := 'TextEdition.xml'
 
 (:  Base path string to the edition's contents :)
-let $contentsBasePathString := '/Users/niko/Repos/OPERA-Edition/'
+let $contentsBasePathString := '/Users/tbachmann/Repos/'
 
 (:  Edition contents base path :)
 let $contentsBasePath := concat($contentsBasePathString, $editionID, '/')
 
-let $texEditionDoc := doc(concat($contentsBasePath, '/text/', $textEditionFileNameString))
+let $texEditionDoc := doc(concat($contentsBasePath, '/texts/', $textEditionFileNameString))
 
 let $milestonesAct := $texEditionDoc//tei:milestone[@unit = 'act']
 
@@ -40,8 +40,11 @@ for $milestoneAct at $i1 in $milestonesAct
 return
     for $milestoneScene at $i2 in $milestonesScene
     let $newSceneID := concat('milestone-', format-number($i1, '00'), '-', format-number($i2, '00'), '-00')
+    let $milestoneSceneAirs := $milestoneScene/following-sibling::tei:div[1]//tei:milestone[@unit = 'air']
     
     return
-(:    $newSceneID:)
-        replace value of node $milestoneScene/@xml:id with $newSceneID
-        
+        for $milestoneSceneAir at $i3 in $milestoneSceneAirs
+        let $newAirID := concat('milestone-', format-number($i1, '00'), '-', format-number($i2, '00'), '-', format-number($i3, '00'))
+        return
+        insert node attribute xml:id{$newAirID} into $milestoneSceneAir
+       
