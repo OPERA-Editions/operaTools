@@ -656,10 +656,10 @@ let $concordancesCSVFile := element concordances {
                                                     let $rowT := tokenize($row, ';')
                                                     let $mdiv := $rowT[position() = 3]
                                                     let $connectionNo := $rowT[position() = 4]
-                                                    let $connectionParticipantNos := $rowT[position() > 4 and position() < 9]
+                                                    let $connectionParticipantNos := $rowT[position() > 4 and position() < 10]
                                                     let $plist := for $connectionParticipantNo at $pos in $connectionParticipantNos
                                                                     let $participantSource := $ediConcSourcesCollection[$pos]
-                                                                    where $pos < 5 and normalize-space($connectionParticipantNo) != ''
+                                                                    where $pos < 6 and normalize-space($connectionParticipantNo) != ''
                                                                     return
                                                                         local:getConectionPlistParticipantString($participantSource, $mdiv, $connectionParticipantNo, $connectionType)
                                                         return
