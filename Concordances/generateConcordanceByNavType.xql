@@ -252,7 +252,9 @@ declare function local:getConectionPlistParticipantString($participantSource, $m
             else ()
         )
         else (
-            let $participantSourceMeasures2Connect :=   if ($mdiv = 'Air 30' and $connectionType = 'bars')
+            let $participantSourceMeasures2Connect :=   
+                                                        (: Special case: Text only Air 30 in bar concordance showing text lines of ME:) 
+                                                        if ($mdiv = 'Air 30' and $connectionType = 'bars')
                                                         then (
                                                             if ($participantSource/mei:mei/@xml:id = 'opera_edition_3578ef42-491f-4bc1-a426-728553f3cdba')
                                                             then ($participantSource//mei:mdiv[@label = 'Air 30']//mei:measure[1])
