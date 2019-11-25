@@ -286,12 +286,15 @@ declare function local:getConectionPlistParticipantString($participantSource, $m
                                                             )
                                                             else($participantSource//mei:measure[.//ancestor::mei:mdiv[@label = $mdiv]][@n = normalize-space(substring-before($connectionParticipantNo, ','))])
                                                         )
+                                                        
                                                         else if (($participantSource/mei:mei/@xml:id = 'opera_edition_3578ef42-491f-4bc1-a426-728553f3cdba' or $participantSource/mei:mei/@xml:id = 'opera_source_786a4e99-aacd-459d-a40a-79c894e92497') and contains($connectionParticipantNo, '-'))
                                                         then (
                                                             $participantSource//mei:measure[.//ancestor::mei:mdiv[@label = $mdiv]][number(@n) >= number(substring-before($connectionParticipantNo, '-')) and number(@n) <= number(substring-after($connectionParticipantNo, '-'))]
                                                         )
+                                                        
                                                         else if ($participantSource//tei:TEI/@xml:id = 'TextEdition')
                                                         then ($participantSource//tei:l[number(@n) = number(functx:substring-before-if-contains($connectionParticipantNo, ','))] | $participantSource//tei:lb[@type = 'lineNum'][number(@n) = number(functx:substring-before-if-contains($connectionParticipantNo, ','))])
+                                                        
                                                         else ($participantSource//mei:measure[.//ancestor::mei:mdiv[@label = $mdiv]][@n = normalize-space($connectionParticipantNo)])
             return
                 if (count($participantSourceMeasures2Connect) > 1)
