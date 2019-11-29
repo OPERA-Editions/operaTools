@@ -174,7 +174,7 @@
     <xsl:choose>
       <xsl:when test="$editionConcordanceType = 'music'">
         <!--<xsl:copy-of select="$editionDoc//edi:work[@xml:id = $workID]//edi:concordances//edi:concordance[1]"/>-->
-        <xsl:copy-of select="$editionDoc//edi:work[@xml:id = $workID]//edi:concordance[@name = 'Navigation by number &amp; bar']"/>
+        <xsl:copy-of select="$editionDoc//edi:work[@xml:id = $workID]//edi:concordance[@name = 'Navigation by air &amp; bar']"/>
       </xsl:when>
       <xsl:when test="$editionConcordanceType = 'text'">
         <xsl:copy-of select="$editionDoc//edi:work[@xml:id = $workID]//edi:concordances//edi:concordance[2]"/>
@@ -210,7 +210,7 @@
     <xsl:element name="annot">
       <xsl:attribute name="type">criticalCommentary</xsl:attribute>
       
-      <xsl:for-each select="(//tei:table[@xml:id='Table1']/tei:row)[position() > 1 and (./tei:cell != '')]"><!-- position()>1 | 56-->
+      <xsl:for-each select="(//tei:table[1]/tei:row)[position() > 1]"><!-- position()>1 | 56-->
         <xsl:variable name="no" select="tei:cell[1]" as="xs:string"/>
         
         <!-- Annotation-ID -->
