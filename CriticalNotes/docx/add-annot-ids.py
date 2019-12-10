@@ -35,7 +35,7 @@ for i, row in enumerate(doc.tables[0].rows):
   annotID = idPrefix + str(uuid.uuid4())
   # write annot id to cell
   row.cells[annotColID].paragraphs[0].text = annotID
-  print(j, annotID)
+  print(i, annotID)
 
 # write file
 doc.save(outFile)
