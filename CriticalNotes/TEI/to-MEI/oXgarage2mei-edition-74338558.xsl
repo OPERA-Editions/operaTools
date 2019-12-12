@@ -1088,12 +1088,16 @@
   </xd:doc>
   <xsl:template match="tei:figure">
     <xsl:variable name="graphic">
-      <xsl:value-of select="if (starts-with(normalize-space(string-join(./preceding-sibling::tei:p[1]/text(), '')), '[')) then (substring-before(substring-after(./../../preceding-sibling::tei:p[1]//text(), '['), ']')) else ()"/>
+      <xsl:value-of select="if (starts-with(normalize-space(string-join(preceding-sibling::tei:p[1]//text())), '[')) then (substring-before(substring-after(normalize-space(string-join(preceding-sibling::tei:p[1]//text())), '['), ']')) else ()"/>
     </xsl:variable>
-    <xsl:element name="graphic">
-      <xsl:attribute name="target" select="concat('edition-74338558/graphics/CR/', $graphic)"></xsl:attribute>
-      <xsl:attribute name="width">0.7</xsl:attribute>
+    <xsl:element name="p">
+      <xsl:element name="fig">
+        <xsl:element name="graphic">
+          <xsl:attribute name="target" select="concat('edition-74338558/graphics/CR/', $graphic, '.jpg')"></xsl:attribute>
+          <xsl:attribute name="width">0.7</xsl:attribute>
 <!--      <xsl:processing-instruction name="JS">TODO</xsl:processing-instruction>-->
+        </xsl:element>
+      </xsl:element>
     </xsl:element>
   </xsl:template>
   
