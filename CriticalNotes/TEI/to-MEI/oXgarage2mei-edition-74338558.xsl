@@ -21,8 +21,12 @@
       <xd:p>Layout of CR titles; first attempts for concordance check.</xd:p>
     </xd:desc>
   </xd:doc>
-  
-  <xsl:output indent="yes" omit-xml-declaration="yes"></xsl:output>
+  <xsl:character-map name="qnames">
+    <xsl:output-character character="&amp;" string="&amp;"/>
+    <xsl:output-character character="&lt;" string="&lt;"/>
+    <xsl:output-character character="&gt;" string="&gt;"/>
+  </xsl:character-map>
+  <xsl:output indent="yes" omit-xml-declaration="yes" use-character-maps="qnames"></xsl:output>
   
   <xd:doc>
     <xd:desc/>
@@ -211,6 +215,7 @@
       <xsl:attribute name="type">criticalCommentary</xsl:attribute>
       
       <xsl:for-each select="(//tei:table[1]/tei:row)[position() > 1]"><!-- position()>1 | 56-->
+        <!--        [normalize-space(tei:cell[2]) = 'opera_annot_1d32ad8c-859f-4a7b-89e9-1acf2c08aa78']-->
         <xsl:variable name="no" select="tei:cell[1]" as="xs:string"/>
         
         <!-- Annotation-ID -->
@@ -327,8 +332,7 @@
         
         <!-- Annotationstext -->
         <xsl:variable name="note" select="tei:cell[15]"/>
-        
-        <!-- Wird das hier überhaupt benötigt? -->
+
         <!--<xsl:variable name="scene" as="xs:string">
           <xsl:choose>
             <xsl:when test="$table.actScene = 'Eingang'"><?TODO ggf anderer begriff ?>
@@ -344,7 +348,7 @@
           <xsl:attribute name="type">editorialComment</xsl:attribute>
           <!-- führt zu Problemen bei den Edirom xQuerys -->
 <!--          <xsl:attribute name="n" select="position()"/>-->
-          <xsl:attribute name="xml:id" select="concat($annotIDPrefix, uuid:randomUUID())"></xsl:attribute>
+          <xsl:attribute name="xml:id" select="$annotID"></xsl:attribute>
           <xsl:attribute name="plist">
             <xsl:variable name="plist">
               <xsl:choose>
@@ -357,7 +361,7 @@
                     <xsl:variable name="spotSurfaceID" select="$spotT[2]"/>
                     <xsl:variable name="spotSurfaceSourceDocURI" select="document-uri($sourceDocs[//mei:mei//mei:surface[@xml:id = $spotSurfaceID]])"/>
                     <xsl:variable name="spotID" select="concat('opera_zone_edition-', $editionID, '_', $spotT[3])"/>
-                    <xsl:variable name="spotParticipantURI" select="concat('xmldb:exist:///db/contents/', substring-after($spotSurfaceSourceDocURI, 'OPERA-Edition/'), '#', $spotID, ' ')"/>
+                    <xsl:variable name="spotParticipantURI" select="concat('xmldb:exist:///db/contents/', substring-after($spotSurfaceSourceDocURI, 'Repos/'), '#', $spotID, ' ')"/>
                     <xsl:value-of select="$spotParticipantURI"/>
                   </xsl:for-each>                
                   <!-- ToDo -->
@@ -862,7 +866,7 @@
                     <xsl:variable name="spotSurfaceID" select="$spotT[2]"/>
                     <xsl:variable name="spotSurfaceSourceDocURI" select="document-uri($sourceDocs[//mei:mei//mei:surface[@xml:id = $spotSurfaceID]])"/>
                     <xsl:variable name="spotID" select="concat('opera_zone_edition-', $editionID, '_', $spotT[3])"/>
-                    <xsl:variable name="spotParticipantURI" select="concat('xmldb:exist:///db/contents/', substring-after($spotSurfaceSourceDocURI, 'OPERA-Edition/'), '#', $spotID, ' ')"/>
+                    <xsl:variable name="spotParticipantURI" select="concat('xmldb:exist:///db/contents/', substring-after($spotSurfaceSourceDocURI, 'Repos/'), '#', $spotID, ' ')"/>
                     <xsl:value-of select="$spotParticipantURI"/>
                   </xsl:for-each>                
                   <!-- ToDo -->
@@ -885,7 +889,7 @@
                       </xsl:otherwise>
                     </xsl:choose>
                   </xsl:variable>
-                  <xsl:variable name="additionalParticipantTURI" select="concat('xmldb:exist:///db/contents/', substring-after($additionalParticipantTSourceDocURI, 'OPERA-Edition/'), '#', $additionalParticipantTid, ' ')"/>
+                  <xsl:variable name="additionalParticipantTURI" select="concat('xmldb:exist:///db/contents/', substring-after($additionalParticipantTSourceDocURI, 'Repos/'), '#', $additionalParticipantTid, ' ')"/>
                   <xsl:value-of select="$additionalParticipantTURI"/>
                 </xsl:for-each>
               </xsl:if>
@@ -1082,12 +1086,12 @@
   <xd:doc>
     <xd:desc/>
   </xd:doc>
-  <xsl:template match="tei:graphic">
+  <xsl:template match="tei:figure">
     <xsl:variable name="graphic">
-      <xsl:value-of select="if (starts-with(./../../preceding-sibling::tei:p[1]//text(), '[')) then (substring-before(substring-after(./../../preceding-sibling::tei:p[1]//text(), '['), ']')) else ()"/>
+      <xsl:value-of select="if (starts-with(normalize-space(string-join(./preceding-sibling::tei:p[1]/text(), '')), '[')) then (substring-before(substring-after(./../../preceding-sibling::tei:p[1]//text(), '['), ']')) else ()"/>
     </xsl:variable>
     <xsl:element name="graphic">
-      <xsl:attribute name="target" select="concat('edition-74338557/graphics/', $graphic)"></xsl:attribute>
+      <xsl:attribute name="target" select="concat('edition-74338558/graphics/CR/', $graphic)"></xsl:attribute>
       <xsl:attribute name="width">0.7</xsl:attribute>
 <!--      <xsl:processing-instruction name="JS">TODO</xsl:processing-instruction>-->
     </xsl:element>
