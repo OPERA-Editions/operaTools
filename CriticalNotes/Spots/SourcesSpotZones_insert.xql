@@ -22,7 +22,7 @@ let $spotCell := '12'
 let $contentsBasePath := concat('../../../', $editionID, '/')
 let $sourcesDocs := collection(concat($contentsBasePath, 'sources/?select=*.xml'))
 
-let $annotations := doc(concat($contentsBasePath, 'resources/CN/CN_LiaV_doc.xml'))//tei:table[@xml:id='Table1']/tei:row[position() > 1 ]
+let $annotations := doc(concat($contentsBasePath, 'resources/CN/CN_LiaV_docx.xml'))//tei:table[1]/tei:row[position() > 1 ]
 
 for $annotation at $pos in $annotations
     let $spotsT := tokenize(normalize-space($annotation//tei:cell[12]), '; ')
