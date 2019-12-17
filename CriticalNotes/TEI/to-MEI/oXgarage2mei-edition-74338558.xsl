@@ -414,7 +414,7 @@
                   
                       <!-- Wenn es nur einen Takt gibt -->
                       <!-- Variante 1 und 2: -->
-                      <xsl:when test="($bar_first != '' and $bar_last = '') or ($bar_last = $bar_first)">
+                      <xsl:when test="($bar_first != '' and $bar_last = '')"> <!--  or ($bar_last = $bar_first) -->
                         <xsl:for-each select="$sourcesT">
                           
                           <!-- referenziertes Siglum -->
@@ -847,7 +847,214 @@
                   
                       <!-- Textsegmente -->
                       <xsl:when test="$bar_first = '' and $bar_last = '' and $textLine_first != '' and $textLine_last = ''">
-                        <xsl:value-of select="$bar_first"/>
+                        <xsl:for-each select="$sourcesT">
+                          
+                          <!-- referenziertes Siglum -->
+                          <xsl:variable name="sourceSearch" select="."/>
+                          <xsl:for-each select="$concPlistStartT">
+                            
+                            <!-- URI des aktuellen Konkordanzteilnehmers -->
+                            <xsl:variable name="concPlistStartTMemberSearch" select="."/>
+                            
+                            <!-- Siglum des aktuellen Konkordanzteilnehmers-->
+                            <xsl:variable name="concPlistStartTMemberSearchSiglum" select="doc(concat($pathToEditionContents, '/', substring-after(substring-before($concPlistStartTMemberSearch, '#'), concat($editionIDPrefix, $editionID, '/')), '/'))/mei:mei//mei:identifier[@type = 'siglum']/text() |
+                              doc(concat($pathToEditionContents, '/', substring-after(substring-before($concPlistStartTMemberSearch, '#'), concat($editionIDPrefix, $editionID, '/')), '/'))/tei:TEI//tei:altIdentifier/tei:idno | 
+                              doc(concat($pathToEditionContents, '/', substring-after(substring-before($concPlistStartTMemberSearch, '#'), concat($editionIDPrefix, $editionID, '/')), '/'))/tei:TEI//tei:title[@type = 'siglum']/text()" as="xs:string"/>
+                            <xsl:choose>
+                              
+                              <!-- Ist referenziertes Siglum = Siglum des Konkordanzteilnehmers? -->
+                              <xsl:when test="$concPlistStartTMemberSearchSiglum = $sourceSearch">
+                                <xsl:choose>
+                                  
+                                  <!-- Textsegmente sollen erstmal ignoriert werden -->
+                                  <xsl:when test="contains($concPlistStartTMemberSearch, 'textLine_')">
+                                    <xsl:text>ACHTUNG! TEXT! HIER LÄUFT ETWAS FALSCH!</xsl:text>
+                                  </xsl:when>
+                                  
+                                  <!-- Sind hier Stimmen referenziert? Dann mdiv, Taktnummern, Stimme(n) und Quelle identifizieren -->
+                                  <xsl:when test="contains($concPlistStartTMemberSearch, 'measure_opera_mdiv_')">
+                                    
+                                    <!-- mdivID -->
+                                    <xsl:variable name="mdivID" select="functx:substring-before-last(substring-after($concPlistStartTMemberSearch, '#measure_'), '_')"/>
+                                    
+                                    <!-- Taktnummern -->
+                                    <xsl:variable name="mdivIdMeasureNo" select="functx:substring-after-last($concPlistStartTMemberSearch, '_')"/>
+                                    
+                                    <!-- Stimme(n) -->
+                                    <!-- siehe $parts weiter oben -->
+                                    
+                                    <!-- lokaler Pfad zur Quellen-Datei -->
+                                    <xsl:variable name="localSourceDoc" select="doc(concat($basePathToEditionContents, substring-before(substring-after($concPlistStartTMemberSearch, '/contents/'), '#'), ' '))" as="document-node()"/>
+                                    
+                                    <!-- der gesuchte mdiv -->
+                                    <xsl:variable name="sourceDocMdiv" select="$localSourceDoc/mei:mei//mei:mdiv[@xml:id = $mdivID]" as="node()"/>
+                                    
+                                    <!-- alle parts in diesem mdiv -->
+                                    <xsl:variable name="sourceDocMdivParts" select="$sourceDocMdiv//mei:part"/>
+                                    
+                                    <!-- alle gesuchten Takte in allen benötigten parts -->
+                                    <xsl:variable name="sourceDocMdivPartsMeasureParticipants">
+                                      <xsl:for-each select="$parts">
+                                        <xsl:variable name="part" select="."/>
+                                        <!-- alle Takt-IDs in diesem part, die die entsprechende Taktnummer haben -->
+                                        
+                                        <!-- alle Takte in diesem part -->
+                                        <xsl:variable name="partMeasures" select="$sourceDocMdivParts[@label = $part]//mei:measure"/>
+                                        <!-- alle Takt-IDs, die mit $mdivIdMeasureNo in Verbindung stehen -->
+                                        <xsl:variable name="measureIDs">
+                                          <xsl:for-each select="$partMeasures">
+                                            <xsl:variable name="partMeasure" select="."/>
+                                            <xsl:choose>
+                                              <!-- Enthält die Angabe sowohl Takt- als auch Segmentangaben -->
+                                              <xsl:when test="contains($partMeasure/@n, ',')">
+                                                <xsl:choose>
+                                                  
+                                                  <!-- TAKTSTRECKE mit Segement(en) -->
+                                                  <xsl:when test="contains(substring-before($partMeasure/@n, ','), '-') and not(starts-with($mdivIdMeasureNo, 'seg'))">
+                                                    <xsl:variable name="partMeasureFirst">
+                                                      <xsl:value-of select="number(functx:substring-before-match(substring-before(substring-before($partMeasure/@n/string(), ','), '-'), 'a'))"/>
+                                                    </xsl:variable>
+                                                    <xsl:variable name="partMeasureLast">
+                                                      <xsl:value-of select="number(functx:substring-before-match(substring-after(substring-before($partMeasure/@n/string(), ','), '-'), 'a'))"/>
+                                                    </xsl:variable>
+                                                    <xsl:if test="$partMeasureFirst &lt;= number(functx:substring-before-match($mdivIdMeasureNo, 'a')) and $partMeasureLast &gt;= number(functx:substring-before-match($mdivIdMeasureNo, 'a'))">
+                                                      <xsl:value-of select="concat($partMeasure/@xml:id/string(), ' ')"/>
+                                                    </xsl:if>
+                                                  </xsl:when>
+                                                  
+                                                  <!-- EINZELNER TAKT mit Segment(en) -->
+                                                  <xsl:when test="not(contains(substring-before($partMeasure/@n, ','), '-')) and not(starts-with($mdivIdMeasureNo, 'seg'))">
+                                                    <xsl:variable name="measureIDs" select=".[matches(substring-before(@n, ','), $mdivIdMeasureNo)]/@xml:id"/>
+                                                    <xsl:for-each select="$measureIDs">
+                                                      <xsl:value-of select="concat(./string(), ' ')"/>
+                                                    </xsl:for-each>
+                                                  </xsl:when>
+                                                  
+                                                  <!-- ***** -->
+                                                  
+                                                  <!-- Takt(e) mit SEGMENTSTRECKE -->
+                                                  <xsl:when test="contains(substring-after($partMeasure/@n, ','), '-') and starts-with($mdivIdMeasureNo, 'seg')">
+                                                    <xsl:variable name="partSegmentFirst">
+                                                      <xsl:value-of select="number(functx:substring-before-match(substring-after(substring-before($partMeasure/@n/string(), ','), '-'), 'a'))"/>
+                                                    </xsl:variable>
+                                                    <xsl:variable name="partSegmentLast">
+                                                      <xsl:value-of select="number(functx:substring-before-match(substring-after(substring-after($partMeasure/@n/string(), ','), '-'), 'a'))"/>
+                                                    </xsl:variable>
+                                                    <xsl:if test="$partSegmentFirst &lt;= number(functx:substring-before-match($mdivIdMeasureNo, 'a')) and $partSegmentLast &gt;= number(functx:substring-before-match($mdivIdMeasureNo, 'a'))">
+                                                      <xsl:value-of select="concat($partMeasure/@xml:id/string(), ' ')"/>
+                                                    </xsl:if>
+                                                  </xsl:when>
+                                                  
+                                                  <!-- Takt(e) mit EINZELNEM SEGMENT -->
+                                                  <xsl:when test="not(contains(substring-after($partMeasure/@n, ','), '-')) and starts-with($mdivIdMeasureNo, 'seg')">
+                                                    <xsl:variable name="measureIDs" select=".[matches(substring-after(@n, ', '), $mdivIdMeasureNo)]/@xml:id"/>
+                                                    <xsl:for-each select="$measureIDs">
+                                                      <xsl:value-of select="concat(./string(), ' ')"/>
+                                                    </xsl:for-each>
+                                                  </xsl:when>
+                                                </xsl:choose>
+                                                
+                                              </xsl:when>
+                                              
+                                              <!-- Nur SEGMENTSTRECKE -->
+                                              <xsl:when test="starts-with($partMeasure/@n, 'seg') and contains($partMeasure/@n, '-') and starts-with($mdivIdMeasureNo, 'seg')">
+                                                <xsl:variable name="partSegmentFirst">
+                                                  <xsl:value-of select="number(functx:substring-before-match(substring-before($partMeasure/@n/string(), '-'), 'a'))"/>
+                                                </xsl:variable>
+                                                <xsl:variable name="partSegmentLast">
+                                                  <xsl:value-of select="number(functx:substring-before-match(substring-after($partMeasure/@n/string(), '-'), 'a'))"/>
+                                                </xsl:variable>
+                                                <xsl:if test="$partSegmentFirst &lt;= number(functx:substring-before-match($mdivIdMeasureNo, 'a')) and $partSegmentLast &gt;= number(functx:substring-before-match($mdivIdMeasureNo, 'a'))">
+                                                  <xsl:value-of select="concat($partMeasure/@xml:id/string(), ' ')"/>
+                                                </xsl:if>
+                                              </xsl:when>
+                                              
+                                              <!-- Nur ein SEGMENT -->
+                                              <xsl:when test="starts-with($partMeasure/@n, 'seg') and starts-with($mdivIdMeasureNo, 'seg')">
+                                                <xsl:variable name="measureIDs" select=".[matches(@n, $mdivIdMeasureNo)]/@xml:id"/>
+                                                <xsl:for-each select="$measureIDs">
+                                                  <xsl:value-of select="concat(./string(), ' ')"/>
+                                                </xsl:for-each>
+                                              </xsl:when>
+                                              
+                                              <!-- Nur TAKTSTRECKE -->
+                                              <xsl:when test="contains($partMeasure/@n, '-') and not(starts-with($mdivIdMeasureNo, 'seg'))">
+                                                <xsl:variable name="partMeasureFirst">
+                                                  <xsl:value-of select="number(functx:substring-before-match(substring-before($partMeasure/@n/string(), '-'), 'a'))"/>
+                                                </xsl:variable>
+                                                <xsl:variable name="partMeasureLast">
+                                                  <xsl:value-of select="number(functx:substring-before-match(substring-after($partMeasure/@n/string(), '-'), 'a'))"/>
+                                                </xsl:variable>
+                                                <xsl:if test="$partMeasureFirst &lt;= number(functx:substring-before-match($mdivIdMeasureNo, 'a')) and $partMeasureLast &gt;= number(functx:substring-before-match($mdivIdMeasureNo, 'a'))">
+                                                  <xsl:value-of select="concat($partMeasure/@xml:id/string(), ' ')"/>
+                                                </xsl:if>
+                                              </xsl:when>
+                                              
+                                              <!-- Nur TAKT -->
+                                              <xsl:otherwise>
+                                                <!--<xsl:variable name="measureIDs" select=".[matches(@n, $mdivIdMeasureNo)]/@xml:id"/>-->
+                                                <xsl:variable name="measureIDs" select=".[@n = $mdivIdMeasureNo]/@xml:id"/>
+                                                <xsl:for-each select="$measureIDs">
+                                                  <xsl:value-of select="concat(./string(), ' ')"/>
+                                                </xsl:for-each>
+                                              </xsl:otherwise>
+                                              
+                                            </xsl:choose>
+                                          </xsl:for-each>
+                                        </xsl:variable>
+                                        
+                                        <!-- participant uris für @plist -->
+                                        <xsl:variable name="measureParticipants">
+                                          <xsl:for-each select="distinct-values(tokenize($measureIDs, ' '))">
+                                            <xsl:variable name="measureID" select="."/>
+                                            <xsl:if test="$measureID != ''">
+                                              <xsl:value-of select="concat(substring-before($concPlistStartTMemberSearch, '#'), '#', $measureID, ' ')"/>
+                                            </xsl:if>
+                                          </xsl:for-each>
+                                        </xsl:variable>
+                                        <xsl:value-of select="$measureParticipants"/>
+                                      </xsl:for-each>
+                                      
+                                    </xsl:variable>
+                                    <!-- hier kommt dieser Teil der @plist -->
+                                    <xsl:value-of select="$sourceDocMdivPartsMeasureParticipants"/>
+                                  </xsl:when>
+                                  
+                                  <!-- … wenn es nur normale Takte sind … -->
+                                  <xsl:otherwise>
+                                    <xsl:choose>
+                                      
+                                      <!-- Umgebrochener Takt? -->
+                                      <xsl:when test="contains($concPlistStartTMemberSearch, '?tstamp2')">
+                                        
+                                        <!-- URI der ersten Takthälfte -->
+                                        <xsl:variable name="actualMeasureURI" select="substring-before($concPlistStartTMemberSearch, '?tstamp2')"/>
+                                        
+                                        <!-- ID der ersten Takthälfte -->
+                                        <xsl:variable name="actualMeasureID" select="substring-after($actualMeasureURI, '#')"/>
+                                        <!-- Wir gehen davon aus, dass ein Takt nur einmal umbrochen ist und die zweite Hälfte im mei direkt nach der ersten Hälfte verzeichnet ist. -->
+                                        <!-- ID der zweiten Takthälfte im Quellendokument (direkt nach der ersten Takthälfte) -->
+                                        <xsl:variable name="nextMeasureID" select="doc(concat($basePathToEditionContents, substring-before(substring-after($concPlistStartTMemberSearch, '/contents/'), '#'), ' '))//mei:measure[@xml:id = $actualMeasureID]/following-sibling::mei:measure[1]/@xml:id"/>
+                                        
+                                        <!-- URI der zweiten Takthälfte -->
+                                        <xsl:variable name="nextMeasureURI" select="concat(substring-before($actualMeasureURI, '#'), '#', $nextMeasureID)"/>
+                                        
+                                        <!-- … und die beidenURIs für die @plist -->
+                                        <xsl:value-of select="concat($actualMeasureURI, ' ', $nextMeasureURI, ' ')"/>
+                                      </xsl:when>
+                                      
+                                      <!-- Ansonsten normal… -->
+                                      <xsl:otherwise>
+                                        <xsl:value-of select="concat($concPlistStartTMemberSearch, ' ')"/>
+                                      </xsl:otherwise>
+                                    </xsl:choose>
+                                  </xsl:otherwise>
+                                </xsl:choose>
+                              </xsl:when>
+                              <xsl:otherwise/>
+                            </xsl:choose>
+                          </xsl:for-each>
+                        </xsl:for-each>
                       </xsl:when>
                       
                       <xsl:otherwise>
