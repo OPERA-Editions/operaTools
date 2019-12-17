@@ -265,6 +265,8 @@ declare function local:getConectionPlistParticipantString($participantSource, $m
                                                             else ()
                                                         )
                                                         (: Special case: Text lines of ME in text line concordance :)
+                                                        else if ($connectionType = 'lines' and $mdiv = 'Air 30' and $participantSource/mei:mei/@xml:id = 'opera_edition_3578ef42-491f-4bc1-a426-728553f3cdba')
+                                                        then ($participantSource//mei:mdiv[@label = 'Text lines']//mei:measure[@n = normalize-space($connectionParticipantNo)])
                                                         else if ($connectionType = 'lines' and $mdiv = '' and $participantSource/mei:mei/@xml:id = 'opera_edition_3578ef42-491f-4bc1-a426-728553f3cdba')
                                                         then ($participantSource//mei:mdiv[@label = 'Text lines']//mei:measure[@n = normalize-space($connectionParticipantNo)])
                                                         
