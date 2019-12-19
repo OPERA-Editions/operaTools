@@ -246,10 +246,10 @@
                 <xsl:value-of select="'Violino principale'"/>
               </xsl:when>
               <xsl:when test=". = 'Vl. I'">
-                <xsl:value-of select="'Violino primo'"/>
+                <xsl:value-of select="'Violino Primo'"/>
               </xsl:when>
               <xsl:when test=". = 'Vl. II'">
-                <xsl:value-of select="'Violino secondo'"/>
+                <xsl:value-of select="'Violino Secondo'"/>
               </xsl:when>
               <xsl:when test=". = 'Va.'">
                 <xsl:value-of select="'Viola'"/>
