@@ -1301,7 +1301,7 @@
       <xsl:element name="fig">
         <xsl:element name="graphic">
           <xsl:attribute name="target" select="concat('edition-74338558/graphics/CR/', $graphic, '.jpg')"></xsl:attribute>
-          <xsl:attribute name="width">0.7</xsl:attribute>
+          <xsl:attribute name="width">0.4</xsl:attribute>
 <!--      <xsl:processing-instruction name="JS">TODO</xsl:processing-instruction>-->
         </xsl:element>
       </xsl:element>
