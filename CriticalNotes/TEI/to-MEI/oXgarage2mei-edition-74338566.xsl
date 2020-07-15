@@ -214,7 +214,7 @@
     <xsl:element name="annot">
       <xsl:attribute name="type">criticalCommentary</xsl:attribute>
       
-      <xsl:for-each select="(//tei:table[1]/tei:row)[position() > 1]"><!-- position()>1 | 56-->
+      <xsl:for-each select="(//tei:table[1]/tei:row)[position() > 1 and position() &lt; 4]"><!-- position()>1 | 56-->
         <!--        [normalize-space(tei:cell[2]) = 'opera_annot_1d32ad8c-859f-4a7b-89e9-1acf2c08aa78']-->
         <xsl:variable name="no" select="tei:cell[1]" as="xs:string"/>
         
@@ -222,19 +222,20 @@
         <xsl:variable name="annotID" select="normalize-space(tei:cell[2])" as="xs:string"/>
         
         <!-- Akte, Szenen und Nummern -->
-        <xsl:variable name="table.actScene" select="normalize-space(tei:cell[3])" as="xs:string"/>
-        <xsl:variable name="table.number" select="normalize-space(tei:cell[4])" as="xs:string"/>
+        <!--<xsl:variable name="table.actScene" select="normalize-space(tei:cell[3])" as="xs:string"/>-->
+        <xsl:variable name="table.actScene" select="concat(normalize-space(tei:cell[3]), '.', normalize-space(tei:cell[4]))" as="xs:string"/>
+        <xsl:variable name="table.number" select="normalize-space(tei:cell[5])" as="xs:string"/>
         
         <!-- Taktangaben -->
-        <xsl:variable name="bar_first" select="functx:substring-before-if-contains(normalize-space(tei:cell[5]), ',')" as="xs:string"/>
-        <xsl:variable name="bar_last" select="normalize-space(tei:cell[6])" as="xs:string"/>
+        <xsl:variable name="bar_first" select="functx:substring-before-if-contains(normalize-space(tei:cell[6]), ',')" as="xs:string"/>
+        <xsl:variable name="bar_last" select="normalize-space(tei:cell[7])" as="xs:string"/>
         
         <!-- Textangaben -->
-        <xsl:variable name="textLine_first" select="normalize-space(tei:cell[7])" as="xs:string"/>
-        <xsl:variable name="textLine_last" select="normalize-space(tei:cell[8])" as="xs:string"/>
+        <xsl:variable name="textLine_first" select="normalize-space(tei:cell[8])" as="xs:string"/>
+        <xsl:variable name="textLine_last" select="normalize-space(tei:cell[9])" as="xs:string"/>
         
         <!-- Stimmen -->
-        <xsl:variable name="system" select="normalize-space(tei:cell[9])" as="xs:string"/>
+        <xsl:variable name="system" select="normalize-space(tei:cell[10])" as="xs:string"/>
         <xsl:variable name="systemT" select="tokenize($system, ', ')"/>
         <xsl:variable name="parts" as="item()*">
           <xsl:for-each select="$systemT">
@@ -316,7 +317,7 @@
         </xsl:variable>
         
         <!-- Quellen -->
-        <xsl:variable name="sources" select="normalize-space(tei:cell[10])" as="xs:string"/>
+        <xsl:variable name="sources" select="normalize-space(tei:cell[13])" as="xs:string"/>
         
         <!-- Spottitel -->
         <xsl:variable name="spotTitle" select="normalize-space(tei:cell[11])" as="xs:string"/>
@@ -325,13 +326,13 @@
         <xsl:variable name="spots" select="normalize-space(tei:cell[12])" as="xs:string"/>
         
         <!-- weitere IDs -->
-        <xsl:variable name="additionalParticipants" select="string-join(tei:cell[13]//text())" as="xs:string"/>
+        <xsl:variable name="additionalParticipants" select="string-join(tei:cell[14]//text())" as="xs:string"/>
         
         <!-- Kategorien -->
-        <xsl:variable name="category" select="normalize-space(tei:cell[14])" as="xs:string"/>
+        <xsl:variable name="category" select="normalize-space(tei:cell[15])" as="xs:string"/>
         
         <!-- Annotationstext -->
-        <xsl:variable name="note" select="tei:cell[15]"/>
+        <xsl:variable name="note" select="tei:cell[16]"/>
 
         <!--<xsl:variable name="scene" as="xs:string">
           <xsl:choose>
@@ -1179,16 +1180,16 @@
                   <xsl:value-of select="concat('Act ', local:transformToRoman(substring-before($table.actScene, '.')), ', Sc. ', local:transformToRoman(substring-after($table.actScene, '.')), '; lines ', $textLine_first, '–', $textLine_last)"/>
                 </xsl:when>-->
                 <xsl:when test="($table.number = '') and $table.actScene and $textLine_first">
-                  <xsl:value-of select="concat('Act ', local:transformToRoman(substring-before($table.actScene, '.')), ', Sc. ', local:transformToRoman(substring-after($table.actScene, '.')))"/>
+                  <xsl:value-of select="concat('Act ', substring-before($table.actScene, '.'), ', Sc. ', substring-after($table.actScene, '.'))"/>
                 </xsl:when>
                 <xsl:when test="$table.actScene and $textLine_first and $textLine_last">
-                  <xsl:value-of select="concat('(Act ', local:transformToRoman(substring-before($table.actScene, '.')), ', Sc. ', local:transformToRoman(substring-after($table.actScene, '.')), '; lines ', $textLine_first, '–', $textLine_last, ')')"/>
+                  <xsl:value-of select="concat('(Act ', substring-before($table.actScene, '.'), ', Sc. ', substring-after($table.actScene, '.'), '; lines ', $textLine_first, '–', $textLine_last, ')')"/>
                 </xsl:when>
                 <xsl:when test="$table.actScene and $textLine_first">
-                  <xsl:value-of select="concat('(Act ', local:transformToRoman(substring-before($table.actScene, '.')), ', Sc. ', local:transformToRoman(substring-after($table.actScene, '.')), '; line ', $textLine_first, ')')"/>
+                  <xsl:value-of select="concat('(Act ', substring-before($table.actScene, '.'), ', Sc. ', substring-after($table.actScene, '.'), '; line ', $textLine_first, ')')"/>
                 </xsl:when>
                 <xsl:when test="$table.actScene">
-                  <xsl:value-of select="concat('(Act ', local:transformToRoman(substring-before($table.actScene, '.')), ', Sc. ', local:transformToRoman(substring-after($table.actScene, '.')), ')')"/>
+                  <xsl:value-of select="concat('(Act ', substring-before($table.actScene, '.'), ', Sc. ', substring-after($table.actScene, '.'), ')')"/>
                 </xsl:when>
               </xsl:choose>
             </xsl:variable>
