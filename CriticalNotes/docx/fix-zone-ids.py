@@ -16,7 +16,7 @@ outFile = "CN_LiaV_out.docx"
 # first spot id
 spotID = 1
 # id of col containing spots
-spotColID = 11
+spotColID = 12
 
 
 # helper function to delete all paragraphs in a cell
