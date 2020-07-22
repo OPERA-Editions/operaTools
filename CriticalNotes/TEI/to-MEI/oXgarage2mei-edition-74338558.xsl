@@ -226,7 +226,7 @@
         <xsl:variable name="table.number" select="normalize-space(tei:cell[4])" as="xs:string"/>
         
         <!-- Taktangaben -->
-        <xsl:variable name="bar_first" select="functx:substring-before-if-contains(normalize-space(tei:cell[5]), ',')" as="xs:string"/>
+        <xsl:variable name="bar_first" select="tei:cell[5]" as="xs:string"/>
         <xsl:variable name="bar_last" select="normalize-space(tei:cell[6])" as="xs:string"/>
         
         <!-- Textangaben -->
