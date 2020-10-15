@@ -14,14 +14,14 @@ let $labelList := functx:lines(unparsed-text(concat($editionsContentsBasePath, '
 '''
 
 editionContentsBasePathString = '../../../'
-editionID = 'edition-74338567'
+editionID = 'edition-74338566'
 editionsContentsBasePath = editionContentsBasePathString + editionID + '/'
 # sourceID = 'opera_source_af56ff93-664f-4df2-817c-5ad6d826e850'
 # sourceDocPath = editionsContentsBasePath + 'sources/' + sourceID + '.xml'
 
-dimemsionsPrefix = 'A_F-Pn-Ms-2644_'
+dimemsionsPrefix = 'D-HVl-Op_3_5_'
 
-siglum = 'A'
+siglum = 'T-ME'
 
 dimensionsFilePath = editionsContentsBasePath + 'resources/' + siglum + '/' + siglum + '_dimensions.csv'
 

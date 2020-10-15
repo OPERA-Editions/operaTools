@@ -15,11 +15,11 @@ declare option saxon:output "saxon:indent-spaces=4";
 let $editionContentsBasePathString := '../../'
 let $editionID := 'edition-74338566'
 let $editionsContentsBasePath := concat($editionContentsBasePathString, $editionID, '/')
-let $sourceID := 'edirom_source_947bf706-3c36-41fd-9f09-5b995d067a74'
+let $sourceID := 'opera_source_987507b4-a1ac-4de4-a9bb-173ea86d8449'
 
 let $sourceDoc := doc(concat($editionsContentsBasePath, 'sources/', $sourceID, '.xml'))
 
-let $siglum := 'B'
+let $siglum := 'T-ME'
 
 let $labelList := functx:lines(unparsed-text(concat($editionsContentsBasePath, 'resources/', $siglum, '/', $siglum, '-sequenceOfPages.csv')))
 
