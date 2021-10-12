@@ -223,7 +223,10 @@
         
         <!-- Akte, Szenen und Nummern -->
         <!--<xsl:variable name="table.actScene" select="normalize-space(tei:cell[3])" as="xs:string"/>-->
-        <xsl:variable name="table.actScene" select="concat(normalize-space(tei:cell[3]), '.', normalize-space(tei:cell[4]))" as="xs:string"/>
+        <xsl:variable name="table.act" select="normalize-space(tei:cell[3])" as="xs:string"/>
+        <xsl:variable name="table.scene" select="normalize-space(tei:cell[4])" as="xs:string"/>
+        <!--<xsl:variable name="table.actScene" select="concat(normalize-space(tei:cell[3]), '.', normalize-space(tei:cell[4]))" as="xs:string"/>-->
+        <xsl:variable name="table.actScene" select="concat($table.act, '.', $table.scene)" as="xs:string"/>
         <xsl:variable name="table.number" select="normalize-space(tei:cell[5])" as="xs:string"/>
         
         <!-- Taktangaben -->
@@ -372,7 +375,8 @@
                 <xsl:when test="($bar_first != '') or ($textLine_first != '')">
                   
                   <!-- Wie heißt der zugehörige mdiv? -->
-                  <xsl:variable name="actualMDIV" select="normalize-space($table.number)" as="xs:string"/>
+<!--                  <xsl:variable name="actualMDIV" select="normalize-space($table.number)" as="xs:string"/>-->
+                  <xsl:variable name="actualMDIV" select="concat($table.act, ',', $table.scene, ' - ', normalize-space($table.number))" as="xs:string"/>
                   <!-- Die gesuchte Konkordanz: -->
   <!--                <xsl:variable name="actualConc" select="$editionConcordances[@name = $actualMDIV]" as="element()"/>-->
                   <xsl:variable name="actualConcGroup" as="element()">
