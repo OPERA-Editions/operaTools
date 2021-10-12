@@ -214,7 +214,7 @@
     <xsl:element name="annot">
       <xsl:attribute name="type">criticalCommentary</xsl:attribute>
       
-      <xsl:for-each select="(//tei:table[1]/tei:row)[position() > 1 and position() &lt; 4]"><!-- position()>1 | 56-->
+      <xsl:for-each select="(//tei:table[1]/tei:row)[position() > 1]"><!--  and position() &lt; 4    position()>1 | 56-->
         <!--        [normalize-space(tei:cell[2]) = 'opera_annot_1d32ad8c-859f-4a7b-89e9-1acf2c08aa78']-->
         <xsl:variable name="no" select="tei:cell[1]" as="xs:string"/>
         
