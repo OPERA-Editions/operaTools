@@ -1241,6 +1241,7 @@
                   <xsl:choose>
                     <xsl:when test=". = 'M'">#ediromAnnotCategory_Music </xsl:when>
                     <xsl:when test=". = 'T'">#ediromAnnotCategory_Text </xsl:when>
+                    <xsl:when test=". = 'TM'">#ediromAnnotCategory_Text </xsl:when>
                     <xsl:when test=". = 'S'">#ediromAnnotCategory_Stage </xsl:when>
                     <xsl:otherwise>Something went wrong, please check the template!</xsl:otherwise>
                   </xsl:choose>
