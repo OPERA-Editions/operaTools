@@ -1202,7 +1202,12 @@
             
             <xsl:value-of select="concat(
                                     if ($table.number)
-                                    then (concat(normalize-space($table.number), ', '))
+                                    then (
+                                      if (contains($table.number, 'Recitativo'))
+                                      then (concat($table.act , ',', $table.scene, ' Recitativo, '))
+                                      else(
+                                        concat(normalize-space($table.number), ', '))
+                                      )
                                     else (),
                                     if (not($table.number) and $table.actScene and $textLine_first)
                                     then (concat($actSceneLineIndicator, '; '))
