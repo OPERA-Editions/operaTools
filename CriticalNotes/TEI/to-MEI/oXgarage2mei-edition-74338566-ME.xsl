@@ -228,17 +228,18 @@
         <!--<xsl:variable name="table.actScene" select="concat(normalize-space(tei:cell[3]), '.', normalize-space(tei:cell[4]))" as="xs:string"/>-->
         <xsl:variable name="table.actScene" select="concat($table.act, '.', $table.scene)" as="xs:string"/>
         <xsl:variable name="table.number" select="normalize-space(tei:cell[5])" as="xs:string"/>
+        <xsl:variable name="table.numberName" select="normalize-space(tei:cell[6])" as="xs:string"/>
         
         <!-- Taktangaben -->
-        <xsl:variable name="bar_first" select="functx:substring-before-if-contains(normalize-space(tei:cell[6]), ',')" as="xs:string"/>
-        <xsl:variable name="bar_last" select="normalize-space(tei:cell[7])" as="xs:string"/>
+        <xsl:variable name="bar_first" select="functx:substring-before-if-contains(normalize-space(tei:cell[7]), ',')" as="xs:string"/>
+        <xsl:variable name="bar_last" select="normalize-space(tei:cell[8])" as="xs:string"/>
         
         <!-- Textangaben -->
-        <xsl:variable name="textLine_first" select="normalize-space(tei:cell[8])" as="xs:string"/>
-        <xsl:variable name="textLine_last" select="normalize-space(tei:cell[9])" as="xs:string"/>
+        <xsl:variable name="textLine_first" select="normalize-space(tei:cell[9])" as="xs:string"/>
+        <xsl:variable name="textLine_last" select="normalize-space(tei:cell[10])" as="xs:string"/>
         
         <!-- Stimmen -->
-        <xsl:variable name="system" select="normalize-space(tei:cell[10])" as="xs:string"/>
+        <xsl:variable name="system" select="normalize-space(tei:cell[11])" as="xs:string"/>
         <xsl:variable name="systemT" select="tokenize($system, ', ')"/>
         <xsl:variable name="parts" as="item()*">
           <xsl:for-each select="$systemT">
@@ -320,22 +321,22 @@
         </xsl:variable>
         
         <!-- Quellen -->
-        <xsl:variable name="sources" select="normalize-space(tei:cell[13])" as="xs:string"/>
+        <xsl:variable name="sources" select="normalize-space(tei:cell[14])" as="xs:string"/>
         
         <!-- Spottitel -->
-        <xsl:variable name="spotTitle" select="normalize-space(tei:cell[11])" as="xs:string"/>
+        <xsl:variable name="spotTitle" select="normalize-space(tei:cell[12])" as="xs:string"/>
         
         <!-- Spots -->
-        <xsl:variable name="spots" select="normalize-space(tei:cell[12])" as="xs:string"/>
+        <xsl:variable name="spots" select="normalize-space(tei:cell[13])" as="xs:string"/>
         
         <!-- weitere IDs -->
-        <xsl:variable name="additionalParticipants" select="string-join(tei:cell[14]//text())" as="xs:string"/>
+        <xsl:variable name="additionalParticipants" select="string-join(tei:cell[15]//text())" as="xs:string"/>
         
         <!-- Kategorien -->
-        <xsl:variable name="category" select="normalize-space(tei:cell[15])" as="xs:string"/>
+        <xsl:variable name="category" select="normalize-space(tei:cell[16])" as="xs:string"/>
         
         <!-- Annotationstext -->
-        <xsl:variable name="note" select="tei:cell[16]"/>
+        <xsl:variable name="note" select="tei:cell[17]"/>
 
         <!--<xsl:variable name="scene" as="xs:string">
           <xsl:choose>
@@ -376,7 +377,7 @@
                   
                   <!-- Wie heißt der zugehörige mdiv? -->
 <!--                  <xsl:variable name="actualMDIV" select="normalize-space($table.number)" as="xs:string"/>-->
-                  <xsl:variable name="actualMDIV" select="concat($table.act, ',', $table.scene, ' - ', normalize-space($table.number))" as="xs:string"/>
+                  <xsl:variable name="actualMDIV" select="concat($table.act, ',', $table.scene, ' - ', normalize-space(concat($table.number, ' ', $table.numberName)))" as="xs:string"/>
                   <!-- Die gesuchte Konkordanz: -->
   <!--                <xsl:variable name="actualConc" select="$editionConcordances[@name = $actualMDIV]" as="element()"/>-->
                   <xsl:variable name="actualConcGroup" as="element()">
