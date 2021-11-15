@@ -1287,6 +1287,12 @@
           <xsl:apply-templates/>
         </xsl:element>
       </xsl:when>
+      <xsl:when test="contains(@rend,'smallcaps')">
+        <xsl:element name="rend">
+          <xsl:attribute name="font-variant" select="'small-caps'"/>
+          <xsl:apply-templates/>
+        </xsl:element>
+      </xsl:when>      
       <xsl:otherwise>
         <xsl:apply-templates/>
       </xsl:otherwise>
