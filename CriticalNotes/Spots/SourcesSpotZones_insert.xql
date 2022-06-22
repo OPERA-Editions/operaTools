@@ -16,20 +16,22 @@ declare option saxon:output "media-type=text/xml";
 declare option saxon:output "omit-xml-declaration=yes";
 declare option saxon:output "indent=no";
 
-let $editionID := 'edition-74338558'
+let $editionID := 'edition-74338566'
 let $spotCell := '12'
 
 let $contentsBasePath := concat('../../../', $editionID, '/')
 let $sourcesDocs := collection(concat($contentsBasePath, 'sources/?select=*.xml'))
 
-let $annotations := doc(concat($contentsBasePath, 'resources/CN/CN_LiaV_docx.xml'))//tei:table[1]/tei:row[position() > 1 ]
+(:let $annotations := doc(concat($contentsBasePath, 'resources/CN/CN_LiaV_docx.xml'))//tei:table[1]/tei:row[position() > 1 ]:)
+let $annotations := doc(concat($contentsBasePath, 'resources/CN/CN_Steffani_II.xml'))//tei:table[1]/tei:row[position() > 1 ]
+
 
 for $annotation at $pos in $annotations
-    let $spotsT := tokenize(normalize-space($annotation//tei:cell[12]), '; ')
+    let $spotsT := tokenize(normalize-space($annotation//tei:cell[13]), ';')
 (:    where $pos = 1:)
     return
         for $spot in $spotsT
-            let $spotT := tokenize($spot, ', ')
+            let $spotT := tokenize($spot, ',')
             (: just for info: :)
             let $sourceSiglum := $spotT[1]
             (: we search source by surfaceID… :)
@@ -43,8 +45,10 @@ for $annotation at $pos in $annotations
             let $spotSurfaceSourceDocURI := document-uri(root($sourcesDocs/id($spotSurfaceID)))
             let $spotSurface := doc($spotSurfaceSourceDocURI)//surface[@xml:id = $spotSurfaceID]
             
-            let $spotZone := <zone xml:id="{concat('opera_zone_', $editionID, '_', $spotID)}" type="operaAnnotSpot" ulx="{$spotULX}" uly="{$spotULY}" lrx="{$spotLRX}" lry="{$spotLRY}"/>
+            let $spotZone := <zone xml:id="{concat('opera_zone_', $editionID, '-ME_', $spotID)}" type="operaAnnotSpot" ulx="{$spotULX}" uly="{$spotULY}" lrx="{$spotLRX}" lry="{$spotLRY}"/>
             
             return
-(:            $spotZone:)
+            (:$spotZone:)
                 insert node $spotZone as last into $spotSurface
+                (:insert node <a>blubb</a> into $spotSurface:)
+(:                $spotSurface:)

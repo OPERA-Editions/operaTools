@@ -178,7 +178,7 @@
     <xsl:choose>
       <xsl:when test="$editionConcordanceType = 'music'">
         <!--<xsl:copy-of select="$editionDoc//edi:work[@xml:id = $workID]//edi:concordances//edi:concordance[1]"/>-->
-        <xsl:copy-of select="$editionDoc//edi:work[@xml:id = $workID]//edi:concordance[@name = 'Navigation by air &amp; bar']"/>
+        <xsl:copy-of select="$editionDoc//edi:work[@xml:id = $workID]//edi:concordance[@name = 'A and B and T (ME)']"/>
       </xsl:when>
       <xsl:when test="$editionConcordanceType = 'text'">
         <xsl:copy-of select="$editionDoc//edi:work[@xml:id = $workID]//edi:concordances//edi:concordance[2]"/>
@@ -321,7 +321,7 @@
         </xsl:variable>
         
         <!-- Quellen -->
-        <xsl:variable name="sources" select="normalize-space(tei:cell[14])" as="xs:string"/>
+        <xsl:variable name="sources" select="replace(normalize-space(tei:cell[14]), 'T', 'T-ME')" as="xs:string"/>
         
         <!-- Spottitel -->
         <xsl:variable name="spotTitle" select="normalize-space(tei:cell[12])" as="xs:string"/>
@@ -360,12 +360,14 @@
                 
                 <!-- Ist es eine reine Spotanmerkung? -->
                 <xsl:when test="$spots != '' and $bar_first = '' and $textLine_first = ''">
-                  <xsl:variable name="spotsT" select="tokenize(normalize-space($spots), '; ')"/>
+                  <xsl:variable name="spotsT" select="tokenize(normalize-space($spots), ';')"/>
                   <xsl:for-each select="$spotsT">
-                    <xsl:variable name="spotT" select="tokenize(., ', ')"/>
+                    <xsl:variable name="spotT" select="tokenize(., ',')"/>
                     <xsl:variable name="spotSurfaceID" select="$spotT[2]"/>
                     <xsl:variable name="spotSurfaceSourceDocURI" select="document-uri($sourceDocs[//mei:mei//mei:surface[@xml:id = $spotSurfaceID]])"/>
-                    <xsl:variable name="spotID" select="concat('opera_zone_edition-', $editionID, '_', $spotT[3])"/>
+<!--                    <xsl:variable name="spotID" select="concat('opera_zone_edition-', $editionID, '-ME_', $spotT[3])"/>-->
+                    <!-- opera_zone_edition-74338566-ME_0001 -->
+                    <xsl:variable name="spotID" select="concat('opera_zone_edition-', $editionID, '-ME_', $spotT[3])"/>
                     <xsl:variable name="spotParticipantURI" select="concat('xmldb:exist:///db/contents/', substring-after($spotSurfaceSourceDocURI, 'Repos/'), '#', $spotID, ' ')"/>
                     <xsl:value-of select="$spotParticipantURI"/>
                   </xsl:for-each>                
@@ -376,8 +378,17 @@
                 <xsl:when test="($bar_first != '') or ($textLine_first != '')">
                   
                   <!-- Wie heißt der zugehörige mdiv? -->
-<!--                  <xsl:variable name="actualMDIV" select="normalize-space($table.number)" as="xs:string"/>-->
-                  <xsl:variable name="actualMDIV" select="concat($table.act, ',', $table.scene, ' - ', normalize-space(concat($table.number, ' ', $table.numberName)))" as="xs:string"/>
+                  <xsl:variable name="actualMDIV" as="xs:string">
+                    <xsl:choose>
+                      <xsl:when test="$table.scene != ''">
+                        <xsl:copy-of select="concat($table.act, ',', $table.scene, ' - ', normalize-space(concat($table.number, ' ', $table.numberName)))"/>
+                      </xsl:when>
+                      <xsl:otherwise>
+                        <xsl:copy-of select="concat($table.act, ' - ', normalize-space(concat($table.number, ' ', $table.numberName)))"/>
+                      </xsl:otherwise>
+                    </xsl:choose>
+                  </xsl:variable>
+                  
                   <!-- Die gesuchte Konkordanz: -->
   <!--                <xsl:variable name="actualConc" select="$editionConcordances[@name = $actualMDIV]" as="element()"/>-->
                   <xsl:variable name="actualConcGroup" as="element()">
@@ -1078,7 +1089,7 @@
                     <xsl:variable name="spotT" select="tokenize(., ', ')"/>
                     <xsl:variable name="spotSurfaceID" select="$spotT[2]"/>
                     <xsl:variable name="spotSurfaceSourceDocURI" select="document-uri($sourceDocs[//mei:mei//mei:surface[@xml:id = $spotSurfaceID]])"/>
-                    <xsl:variable name="spotID" select="concat('opera_zone_edition-', $editionID, '_', $spotT[3])"/>
+                    <xsl:variable name="spotID" select="concat('opera_zone_edition-', $editionID, '-ME_', $spotT[3])"/>
                     <xsl:variable name="spotParticipantURI" select="concat('xmldb:exist:///db/contents/', substring-after($spotSurfaceSourceDocURI, 'Repos/'), '#', $spotID, ' ')"/>
                     <xsl:value-of select="$spotParticipantURI"/>
                   </xsl:for-each>                

@@ -16,8 +16,8 @@ declare option saxon:output "media-type=text/xml";
 declare option saxon:output "omit-xml-declaration=yes";
 declare option saxon:output "indent=no";
 
-let $editionID := 'edition-74338558'
-let $workID := 'opera_work_d471efd4-7c6f-4e07-9195-8a6fd713f227'
+let $editionID := 'edition-74338566'
+let $workID := 'opera_work_04300c1e-10ad-408e-9665-aff63edf3e1f'
 
 let $contentsBasePath := concat('../../../', $editionID, '/')
 let $sourcesDocs := collection(concat($contentsBasePath, 'sources/?select=*.xml'))
