@@ -78,7 +78,7 @@ declare variable $ediConcType as xs:string := 'fromCSV';
 
 (:~ Set raw concordance data for bar based concordance from CSV :)
 declare variable $concRawDataBars := if ($ediConcType = 'fromCSV')
-                                        then (functx:lines(unparsed-text(concat($pathToEditionContents, 'resources/concordance/', $CSVResourceNameBars))))
+                                        then (functx:lines(unparsed-text(concat($pathToEditionContents, 'resources/concordance/ME/', $CSVResourceNameBars))))
                                         else ();
 
 (:~ Set raw concordance data for text line based concordance from CSV :)
@@ -141,6 +141,8 @@ declare function local:getEdiConcSourcesCollectionFromCSVData($concRawData, $con
     for $siglum in local:getSourceSiglaFromCSV($concRawData, $connectionType)
     return
         (collection(concat($pathToEditionContents, 'sources/?select=*.xml'))[.//mei:identifier[@type = 'siglum'] = $siglum] | collection(concat($pathToEditionContents, 'texts/?select=*.xml'))[.//tei:fileDesc//tei:title[@type = 'siglum'] = $siglum])
+(:        $siglum:)
+
 };
 
 (:~
@@ -241,8 +243,8 @@ declare function local:getConnectionPlistParticipantMEIparts($participantSource 
 :)
 
 declare function local:getConectionPlistParticipantString($participantSource, $mdiv, $connectionParticipantNo, $connectionType) {
-    
     let $participantSourceID := local:getParticipantSourceID($participantSource)
+    (:return concat($participantSourceID, '-', $connectionParticipantNo):)
     return
         (: Hat die Quelle Stimmen?       :)
         if ($participantSource//mei:parts)
@@ -253,13 +255,43 @@ declare function local:getConectionPlistParticipantString($participantSource, $m
         )
         else (
             let $participantSourceMeasures2Connect :=   
-                                                        (: Steffani: I,15 - No. 18 Aria e Ritornello: 'I,14 - No. 17 Aria e Ritornello' :)
-                                                        if ($mdiv = 'I,15 - No. 18 Aria e Ritornello' and contains($connectionParticipantNo, ':'))
+                                                        (: Steffani Special case: appendix links to previous mdiv :)
+                                                        (: also Steffani: I,15 - No. 18 Aria e Ritornello: 'I,14 - No. 17 Aria e Ritornello' :)
+                                                        if (contains($connectionParticipantNo, ':'))
                                                         then (
-                                                            $participantSource//mei:measure[.//ancestor::mei:mdiv[@label = normalize-space(substring-before($connectionParticipantNo, ':'))]][@n = normalize-space(substring-after($connectionParticipantNo, ':'))]
-(:                                                            normalize-space(substring-before($connectionParticipantNo, ':')):)
+                                                            (:if (functx:number-of-matches($connectionParticipantNo, ',') = 2):)
+                                                            if (contains($connectionParticipantNo, ', '))
+                                                            then (
+                                                                let $connectionParticipantNoT := tokenize($connectionParticipantNo, ', ')
+                                                                return
+                                                                    for $p in $connectionParticipantNoT
+                                                                    return
+                                                                        
+                                                                        if (contains($p, ':'))
+                                                                        then (
+                                                                            
+                                                                            $participantSource//mei:measure[.//ancestor::mei:mdiv[@label = normalize-space(substring-before($p, ':'))]][@n = normalize-space(substring-after($p, ':'))]
+                                                                            
+                                                                            (:
+                                                                            let $participant := $participantSource//mei:measure[.//ancestor::mei:mdiv[@label = normalize-space(substring-before($p, ':'))]][@n = normalize-space(substring-after($p, ':'))]
+                                                                            return 
+                                                                                if (count($participant) = 1)
+                                                                                then ()
+                                                                                else ($participantSource//mei:measure[.//descendant::mei:mdiv[@label = normalize-space(substring-before($p, ':'))]][@n = normalize-space(substring-after($p, ':'))])
+                                                                            :)
+                                                                        )
+                                                                        else (
+                                                                            $participantSource//mei:measure[@n = normalize-space($p)]
+                                                                        )
+                                                            )
+                                                            else (
+                                                                $participantSource//mei:measure[.//ancestor::mei:mdiv[@label = normalize-space(substring-before($connectionParticipantNo, ':'))]][@n = normalize-space(substring-after($connectionParticipantNo, ':'))]
+(:                                                                normalize-space(substring-before($connectionParticipantNo, ':')):)
+
+                                                            )
                                                         )
-                                                        (: LiaV: Special case: Text only Air 30 in bar concordance showing text lines of ME :) 
+                                                        
+                                                        (:(\: LiaV: Special case: Text only Air 30 in bar concordance showing text lines of ME :\) 
                                                         else if ($mdiv = 'Air 30' and $connectionType = 'bars')
                                                         then (
                                                             if ($participantSource/mei:mei/@xml:id = 'opera_edition_3578ef42-491f-4bc1-a426-728553f3cdba')
@@ -270,15 +302,15 @@ declare function local:getConectionPlistParticipantString($participantSource, $m
                                                             then ($participantSource//mei:measure[@n = $connectionParticipantNo])
                                                             else ()
                                                         )
-                                                        (: Special case: Text lines of ME in text line concordance :)
+                                                        (\: Special case: Text lines of ME in text line concordance :\)
                                                         else if ($connectionType = 'lines' and $mdiv = 'Air 30' and $participantSource/mei:mei/@xml:id = 'opera_edition_3578ef42-491f-4bc1-a426-728553f3cdba')
                                                         then ($participantSource//mei:mdiv[@label = 'Text lines']//mei:measure[@n = normalize-space($connectionParticipantNo)])
                                                         else if ($connectionType = 'lines' and $mdiv = '' and $participantSource/mei:mei/@xml:id = 'opera_edition_3578ef42-491f-4bc1-a426-728553f3cdba')
-                                                        then ($participantSource//mei:mdiv[@label = 'Text lines']//mei:measure[@n = normalize-space($connectionParticipantNo)])
+                                                        then ($participantSource//mei:mdiv[@label = 'Text lines']//mei:measure[@n = normalize-space($connectionParticipantNo)]):)
                                                         
                                                         (: LiaV: opera_source_6b03f75b-50eb-410b-b729-39c1725bc1c: T; opera_source_3f9ceb69-e909-4fcd-aaeb-06fd3d02e780: T1 :)
                                                         (: Steffani: opera_source_987507b4-a1ac-4de4-a9bb-173ea86d8449: T (ME) :)
-                                                        else if ($participantSource/mei:mei/@xml:id = 'opera_source_987507b4-a1ac-4de4-a9bb-173ea86d8449' or $participantSource/mei:mei/@xml:id = 'opera_source_3f9ceb69-e909-4fcd-aaeb-06fd3d02e780')
+                                                        else if ($participantSource/mei:mei/@xml:id = 'opera_source_987507b4-a1ac-4de4-a9bb-173ea86d8449')
                                                         then (
                                                             if (contains($connectionParticipantNo, ','))
                                                             then (
@@ -299,7 +331,14 @@ declare function local:getConectionPlistParticipantString($participantSource, $m
                                                             then (
                                                                 $participantSource//mei:measure[.//ancestor::mei:mdiv[@label = $mdiv]][number(@n) >= number(substring-before($connectionParticipantNo, '-')) and number(@n) <= number(substring-before(substring-after($connectionParticipantNo, '-'), ','))]
                                                             )
-                                                            else($participantSource//mei:measure[.//ancestor::mei:mdiv[@label = $mdiv]][@n = normalize-space(substring-before($connectionParticipantNo, ','))])
+                                                            else(
+(:                                                                $participantSource//mei:measure[.//ancestor::mei:mdiv[@label = $mdiv]][@n = normalize-space(substring-before($connectionParticipantNo, ','))]:)
+                                                                let $connectionParticipantNoT := tokenize($connectionParticipantNo, ', ')
+                                                                return
+                                                                    for $p in $connectionParticipantNoT
+                                                                    return
+                                                                        $participantSource//mei:measure[@n = normalize-space($p)]
+                                                            )
                                                         )
                                                         
                                                         (: LiaV: opera_edition_3578ef42-491f-4bc1-a426-728553f3cdba: ME; opera_source_786a4e99-aacd-459d-a40a-79c894e92497: A :)
@@ -313,6 +352,9 @@ declare function local:getConectionPlistParticipantString($participantSource, $m
                                                         then ($participantSource//tei:l[number(@n) = number(functx:substring-before-if-contains($connectionParticipantNo, ','))] | $participantSource//tei:lb[@type = 'lineNum'][number(@n) = number(functx:substring-before-if-contains($connectionParticipantNo, ','))])
                                                         
                                                         else ($participantSource//mei:measure[.//ancestor::mei:mdiv[@label = $mdiv]][@n = normalize-space($connectionParticipantNo)])
+(:                                                        else():)
+(:                                                        else ($mdiv):)
+(:            return $participantSourceMeasures2Connect:)
             return
                 if (count($participantSourceMeasures2Connect) > 1)
                 then (concat(local:getConnectionPlistParticipantPrefix($participantSource), $participantSourceID, '.xml#', $participantSourceMeasures2Connect[1]/@xml:id/string(), '?tstamp2=', string(count($participantSourceMeasures2Connect) - 1), 'm+0 '))
@@ -553,9 +595,20 @@ declare function local:getSceneConectionPlistParticipantString($participantSourc
                             }:)
 
 
+let $testOutput := 
+                                        let $connectionType := 'bars'
+                                        let $concRawData := local:getConcRawData($ediConcType, $connectionType)
+                                        let $ediConcSourcesCollection := local:getEdiConcSourcesCollectionFromCSVData($concRawData, $connectionType)
+                                        (: sigla :)
+                                        let $test := local:getSourceSiglaFromCSV($concRawData, $connectionType)
+    return $ediConcSourcesCollection
+(:return $test:)
+
 let $concordancesCSVFile := element concordances {
+
+                                (: Steffani ME number & bar :)
                                 element concordance {
-                                    attribute name {'Navigation by air &amp; bar'},
+                                    attribute name {'Navigation by number &amp; bar (ME)'},
                                     element groups {
                                         let $connectionType := 'bars'
                                         let $concRawData := local:getConcRawData($ediConcType, $connectionType)
@@ -569,18 +622,21 @@ let $concordancesCSVFile := element concordances {
                                                     for $row in $concRawData[position() > 1][tokenize(., ';')[position() = 3] = $mdiv]
                                                     let $rowT := tokenize($row, ';')
                                                     let $connectionNo := $rowT[position() = 4]
-                                                    let $connectionParticipantNos := $rowT[position() > 5 and position() < 9]
+                                                    let $connectionParticipantNos := $rowT[position() > 4 and position() < 9]
+                                                    
                                                     (: LiaV: 5(1) = ME | 6(2) = A | 7(3) = WO | 8(4) = TE | 9(5) = T | 10(6) = T1 :)
-                                                    (: Steffani: 5(1) = ME | 6(2) = A | 7(3) = B | 8(4) = T (ME)    // | 9(5) = T | 10(6) = T1 :)
+                                                    (: Steffani-ME: 5(1) = ME | 6(2) = A | 7(3) = B | 8(4) = T-ME    // | 9(5) = T | 10(6) = T1 :)
                                                     let $plist :=   for $connectionParticipantNo at $pos in $connectionParticipantNos
 (:                                                    return $connectionParticipantNos:)
                                                                     let $participantSource := $ediConcSourcesCollection[$pos]
-                                                                    where $pos < 7 and normalize-space($connectionParticipantNo) != ''
+                                                                    where $pos < 9 and normalize-space($connectionParticipantNo) != ''
                                                                     return
                                                                         local:getConectionPlistParticipantString($participantSource, $mdiv, $connectionParticipantNo, $connectionType)
 (:                                                    return $plist:)
                                                     return
                                                         element connection {
+                                                            (:attribute cPN { fn:string-join($connectionParticipantNos, ';') },:)
+                                                            (:attribute mdiv { $mdiv },:)
                                                             attribute name {if ($mdiv = 'Air 30') then (concat('[Text only, l.', $connectionNo, ']')) else ($connectionNo)},
                                                             attribute plist {$plist}
                                                         }
@@ -589,7 +645,112 @@ let $concordancesCSVFile := element concordances {
                                     }
                                     
                                         
-                                }(:,
+                                }  (:,:)
+                                
+                                (: Steffani ME scene/text line :)
+                                (:element concordance {
+                                    attribute name {'Navigation by scene/text line'},
+                                    element groups {
+                                        element group {
+                                            attribute name {'Scene'},
+                                            element connections {
+                                            let $connectionType := 'scenes'
+                                            let $concRawData := local:getConcRawData($ediConcType, $connectionType)
+                                            let $ediConcSourcesCollection := local:getEdiConcSourcesCollectionFromCSVData($concRawData, $connectionType)
+                                            
+                                            let $scenes := for $row at $pos in $concRawData[position() > 1][tokenize(., ';')[position() = 2] != '']
+                                                                let $rowT := tokenize($row, ';')[position() >= 1 and position() <= 2]
+                                                                return
+                                                                    concat($rowT[1], ';', $rowT[2])
+                                            
+                                            for $row in $concRawData[position() > 1]
+                                                    let $rowT := tokenize($row, ';')
+                                                    let $act := normalize-space($rowT[1])
+                                                    let $scene := normalize-space($rowT[2])
+                                                    let $mdiv := 'Acts and Scenes'
+                                                    let $connectionName := concat('Act ', $act, ', Scene ', $scene)
+                                                    let $connectionParticipantNames := $rowT[position() > 2 and position() < 8]
+                                                    let $plist := for $connectionParticipantName at $pos in $connectionParticipantNames
+                                                                    let $participantSource := $ediConcSourcesCollection[$pos]
+                                                                    (\: $pos is max count of sources/$connectionParticipantNos :\)
+                                                                    where $pos < 6 and normalize-space($connectionParticipantName) != ''
+                                                                    return
+(\:                                                                        concat($participantSource/*/@xml:id/string(), ', ', $mdiv, ', ', $connectionParticipantName):\)
+                                                                        local:getSceneConectionPlistParticipantString($participantSource, $mdiv, $connectionParticipantName)
+                                            
+                                            (\:let $scenes := for $row at $pos in $concRawData[position() > 1][tokenize(., ';')[position() = 2] != '']
+                                                                let $rowT := tokenize($row, ';')[position() >= 1 and position() <= 2]
+                                                                return
+                                                                    concat($rowT[1], ';', $rowT[2])
+                                            
+                                            for $scene at $pos in distinct-values($scenes)
+                                                let $sceneT := tokenize($scene, ';')
+                                                let $act := $sceneT[1]
+                                                let $scene := $sceneT[2]
+                                                let $connectionName := concat('Act ', $act, ', Scene ', $scene)
+                                                let $connectionRow := for $row at $pos in $concRawData[tokenize(., ';')[position() = 1] = $act and tokenize(., ';')[position() = 2] = $scene][1]
+                                                                        return
+                                                                            $row
+                                                let $connectionRowT := tokenize($connectionRow, ';')
+                                                let $connectionParticipantNos := $connectionRowT[position() > 2 and position() < 7]
+                                                let $plist := for $connectionParticipantNo at $pos in $connectionParticipantNos
+                                                                    let $participantSource := $ediConcSourcesCollection[$pos]
+                                                                    where $pos < 3 and normalize-space($connectionParticipantNo) != ''
+                                                                    return
+                                                                        (\:local:getConectionPlistParticipantString($participantSource, $mdiv, $connectionParticipantNo):\)
+                                                                        let $participantSourceID := local:getParticipantSourceID($participantSource)
+                                                                        return
+                                                                            let $participantSourceMeasures2Connect := if ($participantSource/mei:mei/@xml:id = 'opera_source_6b03f75b-50eb-410b-b729-39c1725bc1cf')
+                                                                                                                        then ($participantSource//mei:measure[@n = normalize-space($connectionParticipantNo)])
+                                                                                                                        else if ($participantSource//tei:TEI/@xml:id = 'TextEdition')
+                                                                                                                        then (
+                                                                                                                            $participantSource//tei:l[number(@n) = number(functx:substring-before-if-contains($connectionParticipantNo, ','))]//ancestor::*/tei:head[@type = 'scene'] |
+                                                                                                                            $participantSource//tei:lb[@type = 'lineNum'][number(@n) = number(functx:substring-before-if-contains($connectionParticipantNo, ','))]//ancestor::*/tei:head[@type = 'scene']
+                                                                                                                            )
+                                                                                                                        else ()
+                                                                            return
+                                                                                if (count($participantSourceMeasures2Connect) > 1)
+                                                                                    then (concat(local:getConnectionPlistParticipantPrefix($participantSource), $participantSourceID, '.xml#', $participantSourceMeasures2Connect[1]/@xml:id/string(), '?tstamp2=', string(count($participantSourceMeasures2Connect) - 1), 'm+0 '))
+                                                                                    else (concat(local:getConnectionPlistParticipantPrefix($participantSource), $participantSourceID, '.xml#', $participantSourceMeasures2Connect/@xml:id/string(), ' '))
+                                                                                                     :\)               
+                                                return
+                                                    element connection {
+                                                        attribute name {$connectionName},
+                                                        attribute plist {$plist}
+                                                        }
+                                            }
+                                        },
+                                        element group {
+                                            attribute name {'Text line'},
+                                            element connections {
+                                                let $connectionType := 'lines'
+                                                let $concRawData := local:getConcRawData($ediConcType, $connectionType)
+                                                let $ediConcSourcesCollection := local:getEdiConcSourcesCollectionFromCSVData($concRawData, $connectionType)
+                                                
+                                                for $row in $concRawData[position() > 1]
+                                                    let $rowT := tokenize($row, ';')
+                                                    let $mdiv := $rowT[position() = 3]
+                                                    let $connectionNo := $rowT[position() = 4]
+                                                    let $connectionParticipantNos := $rowT[position() > 4 and position() < 10]
+                                                    let $plist := for $connectionParticipantNo at $pos in $connectionParticipantNos
+                                                                    let $participantSource := $ediConcSourcesCollection[$pos]
+                                                                    where $pos < 6 and normalize-space($connectionParticipantNo) != ''
+                                                                    return
+                                                                        local:getConectionPlistParticipantString($participantSource, $mdiv, $connectionParticipantNo, $connectionType)
+                                                        return
+                                                            element connection {
+                                                                attribute name {$connectionNo},
+                                                                attribute plist {$plist}
+                                                                }
+                                            }
+                                        }
+                                    }
+                                }:)
+                                
+                                
+                                
+                                
+                                (:,
                                 element concordance {
                                     attribute name {'Navigation by scene/text line'},
                                     element groups {
@@ -687,12 +848,14 @@ let $concordancesCSVFile := element concordances {
                                             }
                                         }
                                     }
-                                }
+                                }:)
                             }
                                         
 
 return
 
 (:    replace node $editionEdiromDoc//concordances with $concordancesCSVFile:)
+(:$mdivsReference:)
+(:$testOutput:)
 $concordancesCSVFile
 (:$ediConcSourcesCollection:)
