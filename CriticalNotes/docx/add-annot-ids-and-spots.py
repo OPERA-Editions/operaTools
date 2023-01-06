@@ -22,6 +22,11 @@ import docx
 import uuid
 import csv
 from xml.dom import minidom
+import requests
+import time
+
+startTime = time.time()
+
 
 
 """
@@ -34,11 +39,9 @@ TODO:
 
 # shall the output file be written?
 write_output_file = True
+# shall the spots be reloaded?
+reload_spots = True
 
-# act = 'I-I'
-# act = 'I-II'
-# act = 'II'
-# act = 'III'
 
 # chose the acts
 acts = ['I-I']
@@ -47,65 +50,91 @@ acts = ['II']
 acts = ['III']
 acts = ['I-I', 'I-II', 'II', 'III']
 
+# key of google spreadsheet (gid entered later)
+spreadsheet_key = '15e2LgZIMb2AJ8Qw818Zsjqw-lEOjbrZmDeK6FbZGgcc'
 
+
+
+# function to read google doc csv file and safe to disc
+def get_google_spreadsheet_as_csv (spreadsheet_key, output_file, sheet_id):
+    response = requests.get('https://docs.google.com/spreadsheet/ccc?key=' + spreadsheet_key + '&gid=' + sheet_id + '&output=csv')
+    assert response.status_code == 200, 'Wrong status code'
+    response.encoding = 'utf-8'
+    spreadsheet_content = response.text
+
+    csv_response = csv.reader(spreadsheet_content.splitlines(), delimiter=',')
+    csv_list = list(csv_response)
+
+    with open(output_file, 'w') as csv_file:
+        # creating a csv writer object  
+        csv_writer = csv.writer(csv_file)
+
+        # writing the data rows  
+        csv_writer.writerows(csv_list)
+
+
+def get_surface_xmlid_by_n(source, n):
+  if source == 'A':
+      surfaces = surfaces_A
+  elif source == 'B':
+      surfaces = surfaces_B
+  elif source == 'T':
+      surfaces = surfaces_T_ME
+  elif source == 'ME':
+      surfaces = surfaces_ME
+  else:
+    print('ERROR: invalid source siglum')
+
+  for surface in surfaces:
+      surface_xmlid = surface.attributes['xml:id'].value
+      surface_n = int(surface.attributes['n'].value)
+      if surface_n == n:
+          # print('surface_n:', surface_n)
+          return surface_xmlid
+
+# XML-Stuff to find surface IDs
+# parse source files
+print('parsing sourcefiles...')
+# 66-A
+file_A    = minidom.parse('../edition-74338566/sources/opera_source_a8ee1f84-fc0f-4d21-a56f-72e4f93f91c4.xml')
+# 66-B
+file_B    = minidom.parse('../edition-74338566/sources/edirom_source_947bf706-3c36-41fd-9f09-5b995d067a74.xml')
+# 66-T-ME
+file_T_ME = minidom.parse('../edition-74338566/sources/opera_source_987507b4-a1ac-4de4-a9bb-173ea86d8449.xml')
+# 66-ME
+file_ME   = minidom.parse('../edition-74338566/sources/opera_edition_034306b9-b622-4a69-b072-b06e4bb86dd9.xml')
+
+# get surfaces of sources
+surfaces_A    = file_A   .getElementsByTagName('surface')
+surfaces_B    = file_B   .getElementsByTagName('surface')
+surfaces_T_ME = file_T_ME.getElementsByTagName('surface')
+surfaces_ME   = file_ME  .getElementsByTagName('surface')
+
+
+# go through all acts
 for act in acts:
   print('processing', act)
-  # input file
-  #in_file_cn = "../../../edition-74338566/resources/CN/Critical_Notes_Akt-I_Anteil-CS.docx"
-  # in_file_cn = "../edition-74338566/resources/CN/Critical Notes_Akt-II_CS_end_2022-IV-22_numbers_addcols.docx"
-  #in_file_cn = "../edition-74338566/resources/CN/ME CN final/Critical Notes_Akt-I_Anteil-CS_2022-III-17_korrAH_2022-VIII-30_finalCS_2022-VIII-31_numbers_links_addcols.docx"
+
   if act == 'I-I':
-    # in_file_cn = "../edition-74338566/resources/CN/ME CN final/Critical Notes_Akt-I_Anteil-MGi_Red_CS_Korr_MGi_2019-XI-05_red_SB_2022-IX-14-final_addcols_links_spotcleanup.docx"
-    # in_file_cn = "../edition-74338566/resources/CN/ME CN final/2022-11-01_Critical Notes_Akt-I_Anteil-MGi_Red_CS_Korr_MGi_2019-XI-05_red_SB_2022-IX-14-final_addcols_links_spotcleanup_numbers-annotid.docx"
-    # 2022-11-01_Critical Notes_Akt-I_Anteil-MGi_Red_CS_Korr_MGi_2019-XI-05_red_SB_2022-IX-14-final_addcols_links_spotcleanup_numbers-annotid.docx
-
-    # post final
-    # in_file_cn = "/Users/tbachmann/Steffani/CN ME/04-post final/Steffani CN I-1_addrows.docx"
-    in_file_cn = "../edition-74338566/resources/CN/ME CN final/CN_Steffani-ME_I-1_nospots.docx"
-
-    # post-final
-    # in_file_cn = '/Users/tbachmann/Steffani/CN ME/04-post final/Critical Notes_Akt-I_Anteil-MGi_Red_CS_Korr_MGi_2019-XI-05_red_SB_2022-IX-14-final_korrSB.docx'
-
-    # out-file
-    # out_file_cn = "../edition-74338566/resources/CN/ME CN final/Critical Notes_Akt-I_Anteil-MGi_Red_CS_Korr_MGi_2019-XI-05_red_SB_2022-IX-14-final_addcols_links_spotcleanup_numbers-annotid.docx"
-    # out_file_cn = "../edition-74338566/resources/CN/ME CN final/2022-11-01_Critical Notes_Akt-I_Anteil-MGi_Red_CS_Korr_MGi_2019-XI-05_red_SB_2022-IX-14-final_addcols_links_spotcleanup_numbers-annotid_spots.docx"
-
-    # post final
-    # out_file_cn = "/Users/tbachmann/Steffani/CN ME/04-post final/Steffani CN I-1_addrows_annotids-splittitle.docx"
+    in_file_cn  = "../edition-74338566/resources/CN/ME CN final/CN_Steffani-ME_I-1_nospots.docx"
     out_file_cn = "../edition-74338566/resources/CN/ME CN final/CN_Steffani-ME_I-1.docx"
-
-    # post-final
-    # out_file_cn = '/Users/tbachmann/Steffani/CN ME/04-post final/Critical Notes_Akt-I_Anteil-MGi_Red_CS_Korr_MGi_2019-XI-05_red_SB_2022-IX-14-final_korrSB_cn-no.docx'
-
-    # spots file
-    in_file_spots = "../edition-74338566/resources/CN/ME CN final//Steffani ME CN Spots - Akt I-I (MGi).csv"
+    # in_file_cn  = "../edition-74338566/resources/CN/ME CN final/CN_Steffani-ME_I-1_nospots2.docx"
+    # out_file_cn  = "../edition-74338566/resources/CN/ME CN final/CN_Steffani-ME_I-1_nospots.docx"
+    spreadsheet_sheet_id = '0'
+    file_spots = "../edition-74338566/resources/CN/ME CN final/Steffani ME CN Spots - Akt I-I (MGi).csv"
 
     # I-I: 1-108
     spot_id = 1
     # I-I: 1-346 (beware offset)
     cn_id = 0
 
-
-
   elif act == 'I-II':
-    # in_file_cn = "../edition-74338566/resources/CN/ME CN final/Critical Notes_Akt-I_Anteil-CS_2022-III-17_korrAH_2022-VIII-30_finalCS_2022-VIII-31_numbers_links_addcols_annotid_spotscleanup.docx"
-    # post final
-    # in_file_cn = "../edition-74338566/resources/CN/ME CN final/CN_Steffani-ME_I-2_todo.docx"
-    in_file_cn = "../edition-74338566/resources/CN/ME CN final/CN_Steffani-ME_I-2_nospots.docx"
-
-    # post final
-    # in_file_cn = '/Users/tbachmann/Steffani/CN ME/04-post final/Critical Notes_Akt-I_Anteil-CS_2022-III-17_korrAH_2022-VIII-30_finalCS_2022-VIII-31.docx'
-
-    # out file
-    # out_file_cn = "../edition-74338566/resources/CN/ME CN final/Critical Notes_Akt-I_Anteil-CS_2022-III-17_korrAH_2022-VIII-30_finalCS_2022-VIII-31_numbers_links_addcols_annotid_spotscleanup_spots-newtry.docx"
-    # out_file_cn = "../edition-74338566/resources/CN/ME CN final/CN_Steffani-ME_I-2_nospots.docx"
+    in_file_cn  = "../edition-74338566/resources/CN/ME CN final/CN_Steffani-ME_I-2_nospots.docx"
     out_file_cn = "../edition-74338566/resources/CN/ME CN final/CN_Steffani-ME_I-2.docx"
-
-    # post final
-    # out_file_cn = '/Users/tbachmann/Steffani/CN ME/04-post final/Critical Notes_Akt-I_Anteil-CS_2022-III-17_korrAH_2022-VIII-30_finalCS_2022-VIII-31_cn-no.docx'
-
-    # spots file
-    in_file_spots = "../edition-74338566/resources/CN/ME CN final//Steffani ME CN Spots - Akt I-II (CS).csv"
+    # in_file_cn  = "../edition-74338566/resources/CN/ME CN final/CN_Steffani-ME_I-2_nospots2.docx"
+    # out_file_cn  = "../edition-74338566/resources/CN/ME CN final/CN_Steffani-ME_I-2_nospots.docx"
+    spreadsheet_sheet_id = '902816432'
+    file_spots = "../edition-74338566/resources/CN/ME CN final/Steffani ME CN Spots - Akt I-II (CS).csv"
 
     # I-II: 109-289
     # spot_id = 109
@@ -113,27 +142,13 @@ for act in acts:
     # I-II: 347-741
     cn_id = 346
 
-
   elif act == 'II':
-    # in_file_cn = "../edition-74338566/resources/CN/ME CN final/Critical Notes_Akt-II_CS_end_2022-IV-22_korrAH_korrCS_numbers_links_addcols_annotid.docx"
-
-    # post final
-    in_file_cn = "../edition-74338566/resources/CN/ME CN final/CN_Steffani-ME_II_nospots.docx"
-
-    # post-final
-    # in_file_cn = '/Users/tbachmann/Steffani/CN ME/04-post final/Critical Notes_Akt-II_CS_end_2022-IV-22_korrAH_korrCS.docx'
-
-    # out file
-    # out_file_cn = "../edition-74338566/resources/CN/ME CN final/Critical Notes_Akt-II_CS_end_2022-IV-22_korrAH_korrCS_numbers_links_addcols_annotid_spots.docx"
+    in_file_cn  = "../edition-74338566/resources/CN/ME CN final/CN_Steffani-ME_II_nospots.docx"
     out_file_cn = "../edition-74338566/resources/CN/ME CN final/CN_Steffani-ME_II.docx"
-
-
-    # post-final
-    # out_file_cn = '/Users/tbachmann/Steffani/CN ME/04-post final/Critical Notes_Akt-II_CS_end_2022-IV-22_korrAH_korrCS_cn-no.docx'
-
-    # spots file
-    in_file_spots = "../edition-74338566/resources/CN/ME CN final//Steffani ME CN Spots - Akt II.csv"
-
+    # in_file_cn  = "../edition-74338566/resources/CN/ME CN final/CN_Steffani-ME_II_nospots2.docx"
+    # out_file_cn  = "../edition-74338566/resources/CN/ME CN final/CN_Steffani-ME_II_nospots.docx"
+    spreadsheet_sheet_id = '2011174411'
+    file_spots = "../edition-74338566/resources/CN/ME CN final/Steffani ME CN Spots - Akt II.csv"
 
     # II: 290-491
     # spot_id = 290
@@ -141,70 +156,50 @@ for act in acts:
     # II: 742-1245
     cn_id = 741
 
-
   elif act == 'III':
-    # in_file_cn = "../edition-74338566/resources/CN/ME CN final/2022-11-03_Critical Notes_Akt-III_MGI_end_2019-XI-07_red_SB_2022-IX-30-final_addcols_links_no-splitno-annotid.docx"
-    # post final
-    in_file_cn = "../edition-74338566/resources/CN/ME CN final/CN_Steffani-ME_III_nospots.docx"
-
-    # post-final
-    # in_file_cn = '/Users/tbachmann/Steffani/CN ME/04-post final/Critical Notes_Akt-III_MGI_end_2019-XI-07_red_SB_2022-IX-29_korrSB.docx'
-
-    # out file
-    # out_file_cn = "../edition-74338566/resources/CN/ME CN final/2022-11-03_Critical Notes_Akt-III_MGI_end_2019-XI-07_red_SB_2022-IX-30-final_addcols_links_no-splitno-annotid_spots.docx"
+    in_file_cn  = "../edition-74338566/resources/CN/ME CN final/CN_Steffani-ME_III_nospots.docx"
     out_file_cn = "../edition-74338566/resources/CN/ME CN final/CN_Steffani-ME_III.docx"
+    # in_file_cn  = "../edition-74338566/resources/CN/ME CN final/CN_Steffani-ME_III_nospots2.docx"
+    # out_file_cn  = "../edition-74338566/resources/CN/ME CN final/CN_Steffani-ME_III_nospots.docx"
+    spreadsheet_sheet_id = '1970045437'
+    file_spots = "../edition-74338566/resources/CN/ME CN final/Steffani ME CN Spots - Akt III.csv"
 
-    # post-final
-    # out_file_cn = '/Users/tbachmann/Steffani/CN ME/04-post final/Critical Notes_Akt-III_MGI_end_2019-XI-07_red_SB_2022-IX-29_korrSB_cn-no.docx'
-
-    # spots file
-    in_file_spots = "../edition-74338566/resources/CN/ME CN final//Steffani ME CN Spots - Akt III.csv"
-
-      # III: 492-751
+    # III: 492-751
     # spot_id = 492
     spot_id = 800
     # III: 1246-1883
     cn_id = 1245
 
 
-
-  #in_file_cn = "Critical Notes_Akt-II_CS_end_2022-IV-22.docx"
-  # output file
-  #out_file_cn = "../../../edition-74338566/resources/CN/Critical_Notes_Akt-I_Anteil-CS_out.docx"
-  # out_file_cn = "../edition-74338566/resources/CN/Critical Notes_Akt-II_CS_end_2022-IV-22_numbers_addcols_annotids.docx"
-  # out_file_cn = "../edition-74338566/resources/CN/ME CN final/Critical Notes_Akt-I_Anteil-CS_2022-III-17_korrAH_2022-VIII-30_finalCS_2022-VIII-31_numbers_links_addcols_annotid.docx"
-
   # prefix of the annotation ids
   id_prefix = "opera_annot_"
   # id of annot id col (zero based index)
   annot_col_id = 1
 
-
-  """ DEPR: spots_input:
-  0: CN #
-  1: Act
-  2: Sc.
-  3: No.
-  4: spots (<siglum>, <surface-id>, <spot-id>, <top>, <left>, <breite>, <höhe>;)
-  5...: not used notes
-  """
   """ spots_input:
   0: CN #
   1: Act
   2: Sc.
   3: No.
   4: DEPR spots (<siglum>, <surface-id>, <spot-id>, <top>, <left>, <breite>, <höhe>;)
-  5...: not used notes
+  5: not used notes
+  6: spots A
+  7: spots B
+  8: spots T
+  9: spots ME
   """
 
-
+  # get spots from google spreadsheet (and overwrite existing)
+  if reload_spots:
+    print('* reloading spots for ' + act)
+    get_google_spreadsheet_as_csv (spreadsheet_key, file_spots, spreadsheet_sheet_id)
 
   spots_input = []
   spots = []
 
   # read spot csv file
-  print(f'reading spot file: {in_file_spots}...')
-  with open(in_file_spots, mode ='r') as file:
+  print(f'* reading spot file: {file_spots}...')
+  with open(file_spots, mode ='r') as file:
     csvFile = csv.reader(file)
     
     # read lines and remove unused data
@@ -215,49 +210,10 @@ for act in acts:
       # spots_input.append(line[:5])
       spots_input.append(line)
 
-      
-
 
   # for i, x in enumerate(spots_input):
   #   print(i, x)
 
-
-  # XML-Stuff to find surface IDs
-  # parse source files
-  print('parsing sourcefiles...')
-  # 66-A
-  file_A    = minidom.parse('../edition-74338566/sources/opera_source_a8ee1f84-fc0f-4d21-a56f-72e4f93f91c4.xml')
-  # 66-B
-  file_B    = minidom.parse('../edition-74338566/sources/edirom_source_947bf706-3c36-41fd-9f09-5b995d067a74.xml')
-  # 66-T-ME
-  file_T_ME = minidom.parse('../edition-74338566/sources/opera_source_987507b4-a1ac-4de4-a9bb-173ea86d8449.xml')
-  # 66-ME
-  file_ME   = minidom.parse('../edition-74338566/sources/opera_edition_034306b9-b622-4a69-b072-b06e4bb86dd9.xml')
-
-  # get surfaces of sources
-  surfaces_A    = file_A   .getElementsByTagName('surface')
-  surfaces_B    = file_B   .getElementsByTagName('surface')
-  surfaces_T_ME = file_T_ME.getElementsByTagName('surface')
-  surfaces_ME   = file_ME  .getElementsByTagName('surface')
-
-  def get_surface_xmlid_by_n(source, n):
-      if source == 'A':
-          surfaces = surfaces_A
-      elif source == 'B':
-          surfaces = surfaces_B
-      elif source == 'T':
-          surfaces = surfaces_T_ME
-      elif source == 'ME':
-          surfaces = surfaces_ME
-      else:
-        print('ERROR: invalid source siglum')
-
-      for surface in surfaces:
-          surface_xmlid = surface.attributes['xml:id'].value
-          surface_n = int(surface.attributes['n'].value)
-          if surface_n == n:
-              # print('surface_n:', surface_n)
-              return surface_xmlid
 
 
 
@@ -271,7 +227,7 @@ for act in acts:
   * lry = top + höhe
   """
 
-  print("recalculating spots...")
+  print("* recalculating spots...")
   for spots in spots_input:
     # if spots[4] == '' or spots[0] == '': continue
     if spots[0] == '': continue
@@ -363,10 +319,11 @@ for act in acts:
   #   print(cn)
   # # print(spots_input[0])
 
+  # continue
   # exit()
 
   # open document
-  print(f'open file: {in_file_cn}')
+  print(f'* open file: {in_file_cn}')
   doc = docx.Document(in_file_cn)
 
 
@@ -396,7 +353,7 @@ for act in acts:
   actual_spot_id = 0
   last_no = ''
   last_name = ''
-  print("iterating CN and adding annot_id, spots and split No. ...")
+  print("* iterating CN and adding annot_id, spots and split No. ...")
   for i, row in enumerate(doc.tables[0].rows):
     # first row is header
     if i < 1: continue
@@ -408,12 +365,15 @@ for act in acts:
     # CN No.
     cn_no = cn_id + i
     # row.cells[0].paragraphs[0].text = str(cn_no)
+    cn_no = int(row.cells[0].paragraphs[0].text)
+    # print(cn_no)
+
 
     # non_continue = [2, 3, 49, 235, 237, 734]
     # if cn_no not in non_continue:
     #   continue
 
-    print(cn_no)
+    # print(cn_no)
     
     # create new annot id
     # annot_id = id_prefix + str(uuid.uuid4())
@@ -430,7 +390,7 @@ for act in acts:
     # print(actual_spot)
     if int(actual_spot[0]) == cn_no:
       # NOTE: check id
-      print(actual_spot)
+      # print(actual_spot)
       row.cells[12].paragraphs[0].text = actual_spot[4]
       # print('actual_spot[4]:', actual_spot[4])
       actual_spot_id += 1
@@ -471,66 +431,60 @@ for act in acts:
 
     """
 
-    # fix the shit with S annotations...
-    category   = row.cells[15].paragraphs[0].text.strip()
-    spot_title = row.cells[11].paragraphs[0].text.strip()
-    additional_shit = [1725]
-    if ('S' in category and 'Intro' not in spot_title) or cn_no in additional_shit:
-      print(category, ':here we go!')
+    # # fix the shit with S annotations...
+    # category   = row.cells[15].paragraphs[0].text.strip()
+    # spot_title = row.cells[11].paragraphs[0].text.strip()
+    # additional_shit = [1725]
+    # if ('S' in category and 'Intro' not in spot_title) or cn_no in additional_shit:
+    #   # print(category, ':here we go!')
 
-      act        = row.cells[2].paragraphs[0].text.strip()
-      scene      = row.cells[3].paragraphs[0].text.strip()
-      no         = row.cells[4].paragraphs[0].text.strip()
-      full_name  = row.cells[5].paragraphs[0].text.strip()
-      first_bar  = row.cells[6].paragraphs[0].text.strip()
-      last_bar   = row.cells[7].paragraphs[0].text.strip()
-      first_line = row.cells[8].paragraphs[0].text.strip()
-      last_line  = row.cells[9].paragraphs[0].text.strip()
-      system     = row.cells[10].paragraphs[0].text.strip()
-      spot_title = ''
+    #   act        = row.cells[2].paragraphs[0].text.strip()
+    #   scene      = row.cells[3].paragraphs[0].text.strip()
+    #   no         = row.cells[4].paragraphs[0].text.strip()
+    #   full_name  = row.cells[5].paragraphs[0].text.strip()
+    #   first_bar  = row.cells[6].paragraphs[0].text.strip()
+    #   last_bar   = row.cells[7].paragraphs[0].text.strip()
+    #   first_line = row.cells[8].paragraphs[0].text.strip()
+    #   last_line  = row.cells[9].paragraphs[0].text.strip()
+    #   system     = row.cells[10].paragraphs[0].text.strip()
+    #   spot_title = ''
 
-      # if no == "Sinfonia":
-      #   spot_title += no
-      # else:
-      #   spot_title += act + "," + scene + " " + no 
-      #   if full_name != "":
-      #     spot_title += " " + full_name
+    #   if first_bar != "":
+    #     if 'before' in first_bar or 'after' in first_bar or 'beside' in first_bar:
+    #       spot_title += first_bar
+    #     else:
+    #       if last_bar != "":
+    #         spot_title += "bars " + first_bar + "–" + last_bar
+    #       else:
+    #         spot_title += "bar " + first_bar
 
-      if first_bar != "":
-        if 'before' in first_bar or 'after' in first_bar or 'beside' in first_bar:
-          spot_title += first_bar
-        else:
-          if last_bar != "":
-            spot_title += "bars " + first_bar + "-" + last_bar
-          else:
-            spot_title += "bar " + first_bar
-
-        # TODO: last_bar
-      
-      if first_line != "":
-        if first_bar != "":
-          spot_title += " "
-        if 'before' in first_line or 'after' in first_line or 'beside' in first_line:
-          spot_title += "(" + first_line + ")"
-        else:
-          if last_line != "":
-            spot_title += "(lines " + first_line + "-" + last_line + ")"
-          else:
-            spot_title += "(line " + first_line + ")"
+    #   if first_line != "":
+    #     if first_bar != "":
+    #       spot_title += " "
+    #     if 'before' in first_line or 'after' in first_line or 'beside' in first_line:
+    #       spot_title += "(" + first_line + ")"
+    #     else:
+    #       if last_line != "":
+    #         spot_title += "(lines " + first_line + "–" + last_line + ")"
+    #       else:
+    #         spot_title += "(line " + first_line + ")"
         
-      # clear bar & line cells
-      row.cells[6].paragraphs[0].text = ""
-      row.cells[7].paragraphs[0].text = ""
-      row.cells[8].paragraphs[0].text = ""
-      row.cells[9].paragraphs[0].text = ""
+    #   # clear bar & line cells
+    #   row.cells[6].paragraphs[0].text = ""
+    #   row.cells[7].paragraphs[0].text = ""
+    #   row.cells[8].paragraphs[0].text = ""
+    #   row.cells[9].paragraphs[0].text = ""
 
-      if system != "" and system != "Spot":
-        spot_title += ", " + system
+    #   if system != "" and system != "Spot":
+    #     spot_title += ", " + system
 
-      print('spot_title:', spot_title)
+    #   # print('spot_title:', spot_title)
 
-      # add spot title to docx
-      row.cells[11].paragraphs[0].text = spot_title
+    #   # add spot title to docx
+    #   row.cells[11].paragraphs[0].text = spot_title
+
+
+
 
     # # split No and Full name if necessary
     # # NOTE: check id
@@ -560,7 +514,10 @@ for act in acts:
 
   # write file
   if write_output_file:
-    print(f'write output file: {out_file_cn}')
+    print(f'* write output file: {out_file_cn}')
     doc.save(out_file_cn)
 
-print('done:', ' '.join([act for act in acts]))
+print('done:', ', '.join([act for act in acts]))
+
+executionTime = (time.time() - startTime)
+print(f'script duration: {int(executionTime / 60)} m {int(executionTime % 60)} s {int((executionTime - int(executionTime)) * 10000)} ms')
