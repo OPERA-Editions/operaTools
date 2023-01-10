@@ -32,8 +32,7 @@
     <xd:desc/>
     <xd:param name="arg"/>
   </xd:doc>
-  <xsl:function name="functx:escape-for-regex" as="xs:string"
-   >
+  <xsl:function name="functx:escape-for-regex" as="xs:string">
     <xsl:param name="arg" as="xs:string?"/>
     
     <xsl:sequence select="
@@ -48,8 +47,7 @@
     <xd:param name="arg"/>
     <xd:param name="delim"/>
   </xd:doc>
-  <xsl:function name="functx:substring-after-last" as="xs:string"
-   >
+  <xsl:function name="functx:substring-after-last" as="xs:string">
     <xsl:param name="arg" as="xs:string?"/>
     <xsl:param name="delim" as="xs:string"/>
     
@@ -178,7 +176,7 @@
     <xsl:choose>
       <xsl:when test="$editionConcordanceType = 'music'">
         <!--<xsl:copy-of select="$editionDoc//edi:work[@xml:id = $workID]//edi:concordances//edi:concordance[1]"/>-->
-        <xsl:copy-of select="$editionDoc//edi:work[@xml:id = $workID]//edi:concordance[@name = 'A and B and T (ME)']"/>
+        <xsl:copy-of select="$editionDoc//edi:work[@xml:id = $workID]//edi:concordance[@name = 'Navigation by number &amp; bar (ME)']"/>
       </xsl:when>
       <xsl:when test="$editionConcordanceType = 'text'">
         <xsl:copy-of select="$editionDoc//edi:work[@xml:id = $workID]//edi:concordances//edi:concordance[2]"/>
@@ -214,7 +212,7 @@
     <xsl:element name="annot">
       <xsl:attribute name="type">criticalCommentary</xsl:attribute>
       
-      <xsl:for-each select="(//tei:table[1]/tei:row)[position() > 1]"><!--  and position() &lt; 4    position()>1 | 56-->
+      <xsl:for-each select="(//tei:table[1]/tei:row)[position() > 1]"><!--  and position() &lt; 4    position()>1 | 56   position() > 47 and position() &lt; 50-->
         <!--        [normalize-space(tei:cell[2]) = 'opera_annot_1d32ad8c-859f-4a7b-89e9-1acf2c08aa78']-->
         <xsl:variable name="no" select="tei:cell[1]" as="xs:string"/>
         
@@ -231,12 +229,40 @@
         <xsl:variable name="table.numberName" select="normalize-space(tei:cell[6])" as="xs:string"/>
         
         <!-- Taktangaben -->
-        <xsl:variable name="bar_first" select="functx:substring-before-if-contains(normalize-space(tei:cell[7]), ',')" as="xs:string"/>
-        <xsl:variable name="bar_last" select="normalize-space(tei:cell[8])" as="xs:string"/>
+        <!--<xsl:variable name="bar_first" select="functx:substring-before-if-contains(normalize-space(tei:cell[7]), ',')" as="xs:string"/>-->
+        <!--<xsl:variable name="bar_last" select="normalize-space(tei:cell[8])" as="xs:string"/>-->
+        <xsl:variable name="bar_first_raw" select="functx:substring-before-if-contains(normalize-space(tei:cell[7]), ',')" as="xs:string"/>
+        <xsl:variable name="bar_first" as="xs:string">
+          <xsl:choose>
+            <xsl:when test="contains($bar_first_raw, 'after') or contains($bar_first_raw, 'before') or contains($bar_first_raw, 'beside')"><xsl:value-of select="normalize-space(' ')"/></xsl:when>
+            <xsl:otherwise><xsl:value-of select="$bar_first_raw"/></xsl:otherwise>
+          </xsl:choose>
+        </xsl:variable>
+        <xsl:variable name="bar_last_raw" select="normalize-space(tei:cell[8])" as="xs:string"/>
+        <xsl:variable name="bar_last" as="xs:string">
+          <xsl:choose>
+            <xsl:when test="contains($bar_last_raw, 'after') or contains($bar_last_raw, 'before') or contains($bar_last_raw, 'beside')"><xsl:value-of select="normalize-space(' ')"/></xsl:when>
+            <xsl:otherwise><xsl:value-of select="$bar_last_raw"/></xsl:otherwise>
+          </xsl:choose>
+        </xsl:variable>
         
         <!-- Textangaben -->
-        <xsl:variable name="textLine_first" select="normalize-space(tei:cell[9])" as="xs:string"/>
-        <xsl:variable name="textLine_last" select="normalize-space(tei:cell[10])" as="xs:string"/>
+        <!--<xsl:variable name="textLine_first" select="normalize-space(tei:cell[9])" as="xs:string"/>-->
+        <!--<xsl:variable name="textLine_last" select="normalize-space(tei:cell[10])" as="xs:string"/>-->
+        <xsl:variable name="textLine_first_raw" select="normalize-space(tei:cell[9])" as="xs:string"/>
+        <xsl:variable name="textLine_first" as="xs:string">
+          <xsl:choose>
+            <xsl:when test="contains($textLine_first_raw, 'after') or contains($textLine_first_raw, 'before') or contains($textLine_first_raw, 'beside')"><xsl:value-of select="normalize-space(' ')"/></xsl:when>
+            <xsl:otherwise><xsl:value-of select="$textLine_first_raw"/></xsl:otherwise>
+          </xsl:choose>
+        </xsl:variable>
+        <xsl:variable name="textLine_last_raw" select="normalize-space(tei:cell[10])" as="xs:string"/>
+        <xsl:variable name="textLine_last" as="xs:string">
+          <xsl:choose>
+            <xsl:when test="contains($textLine_last_raw, 'after') or contains($textLine_last_raw, 'before') or contains($textLine_last_raw, 'beside')"><xsl:value-of select="normalize-space(' ')"/></xsl:when>
+            <xsl:otherwise><xsl:value-of select="$textLine_last_raw"/></xsl:otherwise>
+          </xsl:choose>
+        </xsl:variable>
         
         <!-- Stimmen -->
         <xsl:variable name="system" select="normalize-space(tei:cell[11])" as="xs:string"/>
@@ -380,6 +406,9 @@
                   <!-- Wie heißt der zugehörige mdiv? -->
                   <xsl:variable name="actualMDIV" as="xs:string">
                     <xsl:choose>
+                      <xsl:when test="contains($table.number, 'Appendix')">
+                        <xsl:copy-of select="concat(normalize-space($table.number), ' - [', $table.act, ',', $table.scene, ']')"/>
+                      </xsl:when>
                       <xsl:when test="$table.scene != ''">
                         <xsl:copy-of select="concat($table.act, ',', $table.scene, ' - ', normalize-space(concat($table.number, ' ', $table.numberName)))"/>
                       </xsl:when>
@@ -1084,9 +1113,9 @@
               
               <!-- Wenn es eine takt-/segmentbasiere Anmerkung war, gibt es vielleicht trotzdem Spots? -->
               <xsl:if test="$spots != '' and ($bar_first != '' or $textLine_first != '')">
-                  <xsl:variable name="spotsT" select="tokenize(normalize-space($spots), '; ')"/>
+                  <xsl:variable name="spotsT" select="tokenize(normalize-space($spots), ';')"/>
                   <xsl:for-each select="$spotsT">
-                    <xsl:variable name="spotT" select="tokenize(., ', ')"/>
+                    <xsl:variable name="spotT" select="tokenize(., ',')"/>
                     <xsl:variable name="spotSurfaceID" select="$spotT[2]"/>
                     <xsl:variable name="spotSurfaceSourceDocURI" select="document-uri($sourceDocs[//mei:mei//mei:surface[@xml:id = $spotSurfaceID]])"/>
                     <xsl:variable name="spotID" select="concat('opera_zone_edition-', $editionID, '-ME_', $spotT[3])"/>
@@ -1137,7 +1166,8 @@
                   <xsl:value-of select="$spotTitle"/>
                 </xsl:when>
                 <!-- no bars, no segs., so leave empty… -->
-                <xsl:when test="$bar_first = '' and $bar_last = '' and $textLine_first = '' and $textLine_last = ''">Hier passt etwas nicht. Bitte prüfen!</xsl:when>
+                <!--<xsl:when test="$bar_first = '' and $bar_last = '' and $textLine_first = '' and $textLine_last = ''">Hier passt etwas nicht. Bitte prüfen!</xsl:when>-->
+                <xsl:when test="$bar_first = '' and $bar_last = '' and $textLine_first = '' and $textLine_last = ''"></xsl:when>
                 <xsl:when test="$bar_first = '' and $bar_last = '' and $textLine_first != '' and $textLine_last = ''">
                   <xsl:value-of select="concat('line ', $textLine_first, if ($spotTitle) then (concat(', ', $spotTitle)) else ())"/>
                 </xsl:when>
@@ -1195,22 +1225,24 @@
                 <!--<xsl:when test="($table.number = '') and $table.actScene and $textLine_first and $textLine_last">
                   <xsl:value-of select="concat('Act ', local:transformToRoman(substring-before($table.actScene, '.')), ', Sc. ', local:transformToRoman(substring-after($table.actScene, '.')), '; lines ', $textLine_first, '–', $textLine_last)"/>
                 </xsl:when>-->
-                <xsl:when test="($table.number = '') and $table.actScene and $textLine_first">
+                <!--<xsl:when test="($table.number = '') and $table.actScene and $textLine_first">
                   <xsl:value-of select="concat('Act ', substring-before($table.actScene, '.'), ', Sc. ', substring-after($table.actScene, '.'))"/>
-                </xsl:when>
+                </xsl:when>-->
                 <xsl:when test="$table.actScene and $textLine_first and $textLine_last">
-                  <xsl:value-of select="concat('(Act ', substring-before($table.actScene, '.'), ', Sc. ', substring-after($table.actScene, '.'), '; lines ', $textLine_first, '–', $textLine_last, ')')"/>
+                  <!--<xsl:value-of select="concat('(Act ', substring-before($table.actScene, '.'), ', Sc. ', substring-after($table.actScene, '.'), '; lines ', $textLine_first, '–', $textLine_last, ')')"/>-->
+                  <xsl:value-of select="concat(' (lines ', $textLine_first, '–', $textLine_last, ')')"/>
                 </xsl:when>
                 <xsl:when test="$table.actScene and $textLine_first">
-                  <xsl:value-of select="concat('(Act ', substring-before($table.actScene, '.'), ', Sc. ', substring-after($table.actScene, '.'), '; line ', $textLine_first, ')')"/>
+                  <!--<xsl:value-of select="concat('(Act ', substring-before($table.actScene, '.'), ', Sc. ', substring-after($table.actScene, '.'), '; line ', $textLine_first, ')')"/>-->
+                  <xsl:value-of select="concat(' (line ', $textLine_first, ')')"/>
                 </xsl:when>
-                <xsl:when test="$table.actScene">
+                <!--<xsl:when test="$table.actScene">
                   <xsl:value-of select="concat('(Act ', substring-before($table.actScene, '.'), ', Sc. ', substring-after($table.actScene, '.'), ')')"/>
-                </xsl:when>
+                </xsl:when>-->
               </xsl:choose>
             </xsl:variable>
             
-            
+            <!-- $no, ' ', -->
             <xsl:value-of select="concat(
                                     if ($table.number)
                                     then (
@@ -1226,10 +1258,11 @@
                                     if ($titleBarOrSegIndicator)
                                     then ($titleBarOrSegIndicator)
                                     else (),
-                                    if($table.actScene and $table.number)
-                                    then (concat(' ', $actSceneLineIndicator))
+                                    if($table.actScene and $table.number and $spotTitle = '')
+                                    then ($actSceneLineIndicator)
                                     else (),
-                                    if ($system)
+                                    if ($system and $spotTitle = '')
+                 (: change here to remove 'Spot'from CN title :)
                                     then (concat(', ', $system))
                                     else ())
                                     "/>
