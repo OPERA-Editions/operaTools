@@ -197,7 +197,7 @@ declare function local:getConnectionPlistParticipantPrefix($participantSource) {
 declare function local:getSourceSiglaFromCSV($concRawData, $connectionType) {
     if ($connectionType = 'scenes')
     then (tokenize($concRawData[1], ';')[position() > 3 and position() < 6])
-    else (tokenize($concRawData[1], ';')[position() > 4 and position() < 7])
+    else (tokenize($concRawData[1], ';')[position() > 5 and position() < 8])
 };
                    
 
@@ -232,7 +232,21 @@ declare function local:getConnectionPlistParticipantMEIparts($participantSource 
 };
 
 
-
+declare function local:fillLineNumberZeros($number as xs:string) {
+    let $lineNumber := number($number)
+    
+    
+    return 
+        if (contains($number, 'app') or contains($number, "'"))
+        then ($number)
+        else if ($lineNumber < 10)
+        then (concat('000', $lineNumber))
+        else if ($lineNumber < 100)
+        then (concat('00', $lineNumber))
+        else if ($lineNumber < 1000)
+        then (concat('0', $lineNumber))
+        else ($lineNumber)
+};
 
 (:~
 : This function returns a plist participant uri string
@@ -346,7 +360,8 @@ declare function local:getConectionPlistParticipantString($participantSource, $m
                                                         )
                                                         
                                                         else if ($participantSource//tei:TEI/@xml:id = 'TextEdition')
-                                                        then ($participantSource//tei:l[number(@n) = number(functx:substring-before-if-contains($connectionParticipantNo, ','))] | $participantSource//tei:lb[@type = 'lineNum'][number(@n) = number(functx:substring-before-if-contains($connectionParticipantNo, ','))])
+                                                        (:then ($participantSource//tei:l[number(@n) = number(functx:substring-before-if-contains($connectionParticipantNo, ','))] | $participantSource//tei:lb[@type = 'lineNum'][number(@n) = number(functx:substring-before-if-contains($connectionParticipantNo, ','))]):)
+                                                        then ($participantSource//tei:l[@xml:id = concat('TE-HenricoLeone_l_', local:fillLineNumberZeros(functx:substring-before-if-contains($connectionParticipantNo, ',')))] | $participantSource//tei:lb[@type = 'lineNum'][number(@n) = number(functx:substring-before-if-contains($connectionParticipantNo, ','))])
 (:                                                        then ("TE"):)
                                                         
 (:                                                        else ($participantSource//mei:measure[.//ancestor::mei:mdiv[@label = $mdiv]][@n = normalize-space($connectionParticipantNo)]):)
@@ -645,18 +660,19 @@ let $concordancesCSVFile := element concordances {
                                 element concordance {
                                     attribute name {'Navigation by scene/text line'},
                                     element groups {
-                                        element group {
+                                        (: Steffani TE: Naviagtion by scenes :)
+                                        (:element group {
                                             attribute name {'scene'},
                                             element connections {
                                             let $connectionType := 'scenes'
                                             let $concRawData := local:getConcRawData($ediConcType, $connectionType)
                                             let $ediConcSourcesCollection := local:getEdiConcSourcesCollectionFromCSVData($concRawData, $connectionType)
                                             
-                                            (: TBa 2022-10-06: $scenes never used... :)
-                                            (:let $scenes := for $row at $pos in $concRawData[position() > 1][tokenize(., ';')[position() = 2] != '']
+                                            (\: TBa 2022-10-06: $scenes never used... :\)
+                                            (\:let $scenes := for $row at $pos in $concRawData[position() > 1][tokenize(., ';')[position() = 2] != '']
                                                                 let $rowT := tokenize($row, ';')[position() >= 1 and position() <= 2]
                                                                 return
-                                                                    concat($rowT[1], ';', $rowT[2]):)
+                                                                    concat($rowT[1], ';', $rowT[2]):\)
                                             
                                             for $row in $concRawData[position() > 1]
                                                     let $rowT := tokenize($row, ';')
@@ -671,14 +687,14 @@ let $concordancesCSVFile := element concordances {
                                                     
                                                     let $plist := for $connectionParticipantName at $pos in $connectionParticipantNames
                                                                     let $participantSource := $ediConcSourcesCollection[$pos]
-                                                                    (: $pos is max count of sources/$connectionParticipantNos :)
+                                                                    (\: $pos is max count of sources/$connectionParticipantNos :\)
                                                                     where $pos < 8 and normalize-space($connectionParticipantName) != ''
                                                                     return
-(:                                                                    $pos:)
-(:                                                                        concat($participantSource/*/@xml:id/string(), ', ', $mdiv, ', ', $connectionParticipantName):)
+(\:                                                                    $pos:\)
+(\:                                                                        concat($participantSource/*/@xml:id/string(), ', ', $mdiv, ', ', $connectionParticipantName):\)
                                                                         local:getSceneConectionPlistParticipantString($participantSource, $mdiv, $connectionParticipantName)
                                             
-                                            (:let $scenes := for $row at $pos in $concRawData[position() > 1][tokenize(., ';')[position() = 2] != '']
+                                            (\:let $scenes := for $row at $pos in $concRawData[position() > 1][tokenize(., ';')[position() = 2] != '']
                                                                 let $rowT := tokenize($row, ';')[position() >= 1 and position() <= 2]
                                                                 return
                                                                     concat($rowT[1], ';', $rowT[2])
@@ -712,48 +728,61 @@ let $concordancesCSVFile := element concordances {
                                                                                 if (count($participantSourceMeasures2Connect) > 1)
                                                                                     then (concat(local:getConnectionPlistParticipantPrefix($participantSource), $participantSourceID, '.xml#', $participantSourceMeasures2Connect[1]/@xml:id/string(), '?tstamp2=', string(count($participantSourceMeasures2Connect) - 1), 'm+0 '))
                                                                                     else (concat(local:getConnectionPlistParticipantPrefix($participantSource), $participantSourceID, '.xml#', $participantSourceMeasures2Connect/@xml:id/string(), ' '))
-                                                                                                     :)               
+                                                                                                     :\)               
                                                 return
                                                     element connection {
-(:                                                        attribute test {concat(string($ediConcSourcesCollection[2]//mei:identifier[@type='siglum']), $ediConcSourcesCollection[1]//tei:TEI[@xml:id])},:)
-                                                        (:attribute test {$ediConcSourcesCollection[1]},
-                                                        attribute test2 {$ediConcSourcesCollection[2]},:)
+(\:                                                        attribute test {concat(string($ediConcSourcesCollection[2]//mei:identifier[@type='siglum']), $ediConcSourcesCollection[1]//tei:TEI[@xml:id])},:\)
+                                                        (\:attribute test {$ediConcSourcesCollection[1]},
+                                                        attribute test2 {$ediConcSourcesCollection[2]},:\)
                                                         attribute name {$connectionName},
                                                         attribute plist {$plist}
                                                         }
                                             }
-                                        }
-                                        (: Steffani TE: Naviagtion by text line :)
-                                        (:element group {
-                                            attribute name {'Navigation by text line'},  (\: Navigation by text line :\)
+                                        }:)
+                                        
+                                        
+                                        
+                                        (: Steffani TE: Navgiation by text line :)
+                                        element group {
+                                            attribute name {'Text line'},  (: Navigation by text line :)
                                             element connections {
                                                 let $connectionType := 'lines'
                                                 let $concRawData := local:getConcRawData($ediConcType, $connectionType)
                                                 let $ediConcSourcesCollection := local:getEdiConcSourcesCollectionFromCSVData($concRawData, $connectionType)
                                                 return
-(\:                                                    attribute ediConcSourcesCollection {$ediConcSourcesCollection}:\)
-                                                    (\:attribute concRawData {$concRawData}:\)
+(:                                                    attribute ediConcSourcesCollection {$ediConcSourcesCollection}:)
+                                                    (:attribute concRawData {$concRawData}:)
                                                     
                                                 for $row in $concRawData[position() > 1]
                                                     let $rowT := tokenize($row, ';')
                                                     let $mdiv := $rowT[position() = 4]
                                                     let $connectionNo := $rowT[position() = 5]
-                                                    let $connectionParticipantNos := $rowT[position() > 4 and position() < 7]
+                                                    let $connectionParticipantNos := $rowT[position() > 5 and position() < 8]
                                                     let $plist := for $connectionParticipantNo at $pos in $connectionParticipantNos
                                                                     let $participantSource := $ediConcSourcesCollection[$pos]
-                                                                    where $pos < 7 and normalize-space($connectionParticipantNo) != ''
+                                                                    where $pos < 8 and normalize-space($connectionParticipantNo) != ''
                                                                     return
                                                                         local:getConectionPlistParticipantString($participantSource, $mdiv, $connectionParticipantNo, $connectionType)
                                                         return
                                                             element connection {
-(\:                                                                attribute connectionParticipantNos {$connectionParticipantNos},:\)
-(\:                                                                attribute ediConcSourcesCollection {$ediConcSourcesCollection},:\)
-
+(:                                                                attribute rowT {$rowT},:)
+(:                                                                attribute connectionParticipantNos {$connectionParticipantNos},:)
+(:                                                                attribute ediConcSourcesCollection {$ediConcSourcesCollection},:)
+(:                                                                attribute mdiv {$mdiv},:)
                                                                 attribute name {$connectionNo},
                                                                 attribute plist {$plist}
                                                                 }
                                             }
-                                        }:)
+                                        }
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
                                     }
                                 }
                                 (: following: trash? :)
