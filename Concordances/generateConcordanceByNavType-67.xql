@@ -31,7 +31,8 @@ declare variable $editionID as xs:string := '74338567';
 declare variable $editionIDPrefix as xs:string := 'edition-';
 
 (:~ Resource fiel name of virtual concordance table (as CSV) (bars mode):)
-declare variable $CSVResourceNameBars as xs:string := 'concordance_bars_rawData.csv';
+(:declare variable $CSVResourceNameBars as xs:string := 'concordance_bars_rawData.csv';:)
+declare variable $CSVResourceNameBars as xs:string := 'concordance_bars_rawData-appendices.csv';
 
 (:~ Resource fiel name of virtual concordance table (as CSV) (lines mode):)
 declare variable $CSVResourceNameLines as xs:string := 'concordance_lines_rawData.csv';
