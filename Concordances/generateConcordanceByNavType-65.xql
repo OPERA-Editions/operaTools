@@ -57,7 +57,7 @@ declare variable $workDoc as document-node() := doc(concat($pathToEditionContent
 
 (:~ @xml:id of the concordance reference source – mostly the edition's "source" :)
 (: Vogelhändler: B :)
-declare variable $referenceSourceID as xs:string := 'edirom_source_b469fc92-e13c-446f-873b-0208454ec03d';
+declare variable $referenceSourceID as xs:string := 'opera_source_bx69fc92-e13c-446f-873b-0208454ec0xb';
 
 (:~ Reference source doc :)
 declare variable $refSourceDoc as document-node() := doc(concat($pathToEditionContents, 'sources/', $referenceSourceID, '.xml'));
@@ -145,8 +145,8 @@ declare function local:getEdiConcSourcesCollectionFromCSVData($concRawData, $con
     for $siglum in local:getSourceSiglaFromCSV($concRawData, $connectionType)
     return
         (collection(concat($pathToEditionContents, 'sources/?select=*.xml'))[.//mei:identifier[@type = 'siglum'] = $siglum] | collection(concat($pathToEditionContents, 'texts/?select=*.xml'))[.//tei:fileDesc//tei:title[@type = 'siglum'] = $siglum])
-(:        $siglum
-:)
+(:        $siglum:)
+
 
 };
 
@@ -200,7 +200,7 @@ declare function local:getConnectionPlistParticipantPrefix($participantSource) {
 declare function local:getSourceSiglaFromCSV($concRawData, $connectionType) {
     if ($connectionType = 'scenes')
     then (tokenize($concRawData[1], ';')[position() > 2 and position() < 8])
-    else (tokenize($concRawData[1], ';')[position() > 5 and position() < 11])
+    else (tokenize($concRawData[1], ';')[position() > 5 and position() < 14])
 };
                    
 
@@ -249,7 +249,8 @@ declare function local:getConnectionPlistParticipantMEIparts($participantSource 
 
 declare function local:getConectionPlistParticipantString($participantSource, $mdiv, $connectionParticipantNo, $connectionType) {
     let $participantSourceID := local:getParticipantSourceID($participantSource)
-(:    return concat($participantSource//mei:identifier[@type='siglum'], '|', $participantSourceID, '|', $connectionParticipantNo):)
+(:    return $participantSource:)
+    (:return concat($participantSource//mei:identifier[@type='siglum'], '|', $participantSourceID, '|', $connectionParticipantNo):)
     return
         (: Hat die Quelle Stimmen?       :)
         if ($participantSource//mei:parts)
@@ -637,19 +638,21 @@ let $concordancesCSVFile := element concordances {
                                                     for $row in $concRawData[position() > 1][tokenize(., ';')[position() = 4] = $mdiv]
 (:                                                        return $row:)
                                                         let $rowT := tokenize($row, ';')
+                                                        
                                                         let $connectionNo := $rowT[position() = 5]
-                                                        let $connectionParticipantNos := $rowT[position() > 5 and position() < 11]
+                                                        let $connectionParticipantNos := $rowT[position() > 5 and position() < 14]
+(:                                                        return $connectionParticipantNos:)
                                                         
                                                         (: LiaV: 5(1) = ME | 6(2) = A | 7(3) = WO | 8(4) = TE | 9(5) = T | 10(6) = T1 :)
                                                         (: Steffani-ME: 5(1) = ME | 6(2) = A | 7(3) = B | 8(4) = T-ME :)
                                                         (: Giselle: 6(1) = ME | 7(2) = A | 8(3) = B | 9(4) = C :)
-                                                        (: Lindpaitner:  :)
+                                                        (: Lindpaitner:  6(1) = ME | 7(2) = A1 | 8(3) = A2 | 9(4) = A3 | 10(5) = A4 | 11(6) = B | 12(7) = C | 13(8) = AT1 :)
                                                         let $plist :=   for $connectionParticipantNo at $pos in $connectionParticipantNos
 (:                                                        return $connectionParticipantNo:)
 (:                                                            return $pos:)
 (:                                                            return $ediConcSourcesCollection:)
                                                                         let $participantSource := $ediConcSourcesCollection[$pos]
-                                                                        where $pos < 6 and normalize-space($connectionParticipantNo) != ''
+                                                                        where $pos < 9 and normalize-space($connectionParticipantNo) != ''
                                                                         return 
                                                                             local:getConectionPlistParticipantString($participantSource, $mdiv, $connectionParticipantNo, $connectionType)
 (:                                                                            $connectionParticipantNo:)
