@@ -1,0 +1,610 @@
+"""This script adds
+- CN No.
+- annotation ids (random generated uuids)
+- spots
+  - find surface ids (@xml:id) by page (@n)
+  - recalculate coordinates
+  - generate spot IDs
+- TODO split No. and Full name if necessary
+to all cells in a table of a docx-document.
+
+Required pythonmodules:
+- python-docx
+- python-uuid
+- ...
+
+Created on 2019-12-05
+Author: tbachmann
+updated 2022-06-15 by tbachmann: add spots
+"""
+
+import docx
+import uuid
+import csv
+from xml.dom import minidom
+import requests
+import time
+import subprocess
+
+
+startTime = time.time()
+
+
+
+"""
+TODO:
+* cleanup
+"""
+
+# TODO: spot-id anpassen am ende
+
+
+# shall the spots be reloaded?
+reload_spots = False
+# shall the spots be inserted?
+insert_spots = True
+# shall the output file be written?
+write_output_file = True
+# convert the docx to TEI
+convert_to_tei = True
+
+
+# chose the acts
+acts = ['I-I']
+# acts = ['I-II']
+# acts = ['II']
+# acts = ['III']
+# acts = ['I-I', 'I-II', 'II', 'III']
+
+# key of google spreadsheet (gid entered later)
+# https://docs.google.com/spreadsheets/d//edit?gid=0#gid=0
+spreadsheet_key = '1c8V6ogZICp9VcZIe4k990ABXvc73fCnZiIIa4Lfp6Ao'
+
+
+
+# function to read google doc csv file and safe to disc
+def get_google_spreadsheet_as_csv (spreadsheet_key, output_file, sheet_id):
+    response = requests.get('https://docs.google.com/spreadsheet/ccc?key=' + spreadsheet_key + '&gid=' + sheet_id + '&output=csv')
+    assert response.status_code == 200, 'Wrong status code'
+    response.encoding = 'utf-8'
+    spreadsheet_content = response.text
+
+    csv_response = csv.reader(spreadsheet_content.splitlines(), delimiter=',')
+    csv_list = list(csv_response)
+
+    with open(output_file, 'w') as csv_file:
+        # creating a csv writer object  
+        csv_writer = csv.writer(csv_file)
+
+        # writing the data rows  
+        csv_writer.writerows(csv_list)
+
+
+# function to convert docx to tei via teigarage
+# only works if there are not images embedded in word-file
+def convert_docx_to_tei(input_file, output_file):
+    convert_cmd = f"curl -X 'POST' \
+        'https://teigarage.tei-c.org/ege-webservice/Conversions/docx%3Aapplication%3Avnd.openxmlformats-officedocument.wordprocessingml.document/TEI%3Atext%3Axml?properties=%3Cconversions%3E%3Cconversion%20index%3D%220%22%3E%3Cproperty%20id%3D%22oxgarage.getImages%22%3Etrue%3C%2Fproperty%3E%3Cproperty%20id%3D%22oxgarage.getOnlineImages%22%3Etrue%3C%2Fproperty%3E%3Cproperty%20id%3D%22oxgarage.lang%22%3Een%3C%2Fproperty%3E%3Cproperty%20id%3D%22oxgarage.textOnly%22%3Efalse%3C%2Fproperty%3E%3Cproperty%20id%3D%22pl.psnc.dl.ege.tei.profileNames%22%3Edefault%3C%2Fproperty%3E%3C%2Fconversion%3E%3C%2Fconversions%3E' \
+        -H 'accept: application/pdf' \
+        -H 'Content-Type: multipart/form-data' \
+        -F 'fileToConvert=@{input_file};type=application/vnd.openxmlformats-officedocument.wordprocessingml.document'"
+
+    result = subprocess.run(convert_cmd, shell=True, stdout=subprocess.PIPE, text=True)
+
+    if result.returncode == 0:
+        with open(output_file, 'w') as f:
+            f.write(result.stdout)
+    else:
+        print(f'WARNING: could not convert, returncode {result.returncode}')
+
+# (sigle, surface_n)
+def get_surface_xmlid_by_n(source, n):
+  # print('get_surface_xmlid_by_n: source, n:', source, n)
+  # if source == 'A':
+  #     surfaces = surfaces_A
+  # elif source == 'B':
+  #     surfaces = surfaces_B
+  # elif source == 'T':
+  #     surfaces = surfaces_T_ME
+  # elif source == 'ME':
+  #     surfaces = surfaces_ME
+  # else:
+  #   print('ERROR: invalid source siglum')
+
+  for surface in sources[source]['surfaces']:
+      # surface_n = int(surface.attributes['n'].value)
+      surface_n = surface.attributes['n'].value
+      # print(n, surface_n)
+      if surface_n == n:
+          surface_xmlid = surface.attributes['xml:id'].value
+          # print('surface_n:', surface_n)
+          # print(surface_xmlid)
+          return surface_xmlid
+
+# XML-Stuff to find surface IDs
+# parse source files
+if insert_spots:
+  print('parsing sourcefiles...')
+  # 66-A
+  # file_A    = minidom.parse('../edition-74338566/sources/opera_source_a8ee1f84-fc0f-4d21-a56f-72e4f93f91c4.xml')
+  # # 66-B
+  # file_B    = minidom.parse('../edition-74338566/sources/edirom_source_947bf706-3c36-41fd-9f09-5b995d067a74.xml')
+  # # 66-T-ME
+  # file_T_ME = minidom.parse('../edition-74338566/sources/opera_source_987507b4-a1ac-4de4-a9bb-173ea86d8449.xml')
+  # # 66-ME
+  # file_ME   = minidom.parse('../edition-74338566/sources/opera_edition_034306b9-b622-4a69-b072-b06e4bb86dd9.xml')
+
+  # # get surfaces of sources
+  # surfaces_A    = file_A   .getElementsByTagName('surface')
+  # surfaces_B    = file_B   .getElementsByTagName('surface')
+  # surfaces_T_ME = file_T_ME.getElementsByTagName('surface')
+  # surfaces_ME   = file_ME  .getElementsByTagName('surface')
+
+  # sources
+  # 0: siglum
+  # 1: path
+  # 2: minidom parse
+  # 3: surfaces
+
+  sources = {
+      'A1':  { 'path': '../edition-74338565/sources/source_a1.xml'},
+      'A2':  { 'path': '../edition-74338565/sources/source_a2.xml'},
+      'A3':  { 'path': '../edition-74338565/sources/source_a3.xml'},
+      'A4':  { 'path': '../edition-74338565/sources/source_a4.xml'},
+      'B':   { 'path': '../edition-74338565/sources/source_b.xml'},
+      'C':   { 'path': '../edition-74338565/sources/source_c.xml'},
+      'AT1': { 'path': '../edition-74338565/sources/source_at1.xml'}
+  }
+
+  for key, value in sources.items():
+      # print(key, value)
+      value['minidom'] = minidom.parse(value['path'])
+      value['surfaces'] = value['minidom'].getElementsByTagName('surface')
+
+# print(sources['A1']['surfaces'])
+# print('yay')
+
+# go through all acts
+for act in acts:
+  print('processing', act)
+
+  if act == 'I-I':
+    # in_file_cn = "../edition-74338565/resources/CN/critical_notes_76_TB-for-script-nothing.docx"
+    # out_file_cn = "../edition-74338565/resources/CN/critical_notes_76_TB-for-script_nos-annot.docx"
+    
+    in_file_cn = "../edition-74338565/resources/CN/critical_notes_76_TB-for-script_nos-annot.docx"
+    out_file_cn = "../edition-74338565/resources/CN/critical_notes_76_TB-for-script_nos-annot-spots.docx"
+    out_file_cn_tei = "../edition-74338565/resources/CN/critical_notes_76_TB-for-script_nos-annot-spots.xml"
+    spreadsheet_sheet_id = '0'
+    file_spots = "../edition-74338565/resources/CN/spots.csv"
+
+    # I-I: 1-108
+    spot_id = 1
+    # I-I: 1-346 (beware offset)
+    cn_id = 0
+
+  elif act == 'I-II':
+    in_file_cn  = "../edition-74338566/resources/CN/ME CN final/CN_Steffani-ME_I-2_nospots.docx"
+    out_file_cn = "../edition-74338566/resources/CN/ME CN final/CN_Steffani-ME_I-2.docx"
+    out_file_cn_tei = "../edition-74338566/resources/CN/ME CN final/CN_Steffani-ME_I-2.xml"
+    # in_file_cn  = "../edition-74338566/resources/CN/ME CN final/CN_Steffani-ME_I-2_nospots2.docx"
+    # out_file_cn  = "../edition-74338566/resources/CN/ME CN final/CN_Steffani-ME_I-2_nospots.docx"
+    spreadsheet_sheet_id = '902816432'
+    file_spots = "../edition-74338566/resources/CN/ME CN final/Steffani ME CN Spots - Akt I-II (CS).csv"
+
+    # I-II: 109-289
+    # spot_id = 109
+    spot_id = 200
+    # I-II: 347-741
+    cn_id = 346
+
+  elif act == 'II':
+    in_file_cn  = "../edition-74338566/resources/CN/ME CN final/CN_Steffani-ME_II_nospots.docx"
+    out_file_cn = "../edition-74338566/resources/CN/ME CN final/CN_Steffani-ME_II.docx"
+    out_file_cn_tei = "../edition-74338566/resources/CN/ME CN final/CN_Steffani-ME_II.xml"
+    # in_file_cn  = "../edition-74338566/resources/CN/ME CN final/CN_Steffani-ME_II_nospots2.docx"
+    # out_file_cn  = "../edition-74338566/resources/CN/ME CN final/CN_Steffani-ME_II_nospots.docx"
+    spreadsheet_sheet_id = '2011174411'
+    file_spots = "../edition-74338566/resources/CN/ME CN final/Steffani ME CN Spots - Akt II.csv"
+
+    # II: 290-491
+    # spot_id = 290
+    spot_id = 500
+    # II: 742-1245
+    cn_id = 741
+
+  elif act == 'III':
+    in_file_cn  = "../edition-74338566/resources/CN/ME CN final/CN_Steffani-ME_III_nospots.docx"
+    out_file_cn = "../edition-74338566/resources/CN/ME CN final/CN_Steffani-ME_III.docx"
+    out_file_cn_tei = "../edition-74338566/resources/CN/ME CN final/CN_Steffani-ME_III.xml"
+    # in_file_cn  = "../edition-74338566/resources/CN/ME CN final/CN_Steffani-ME_III_nospots2.docx"
+    # out_file_cn  = "../edition-74338566/resources/CN/ME CN final/CN_Steffani-ME_III_nospots.docx"
+    spreadsheet_sheet_id = '1970045437'
+    file_spots = "../edition-74338566/resources/CN/ME CN final/Steffani ME CN Spots - Akt III.csv"
+
+    # III: 492-751
+    # spot_id = 492
+    spot_id = 800
+    # III: 1246-1883
+    # cn_id = 1245
+    cn_id = 1242
+
+
+  # prefix of the annotation ids
+  id_prefix = "opera_annot_"
+  # id of annot id col (zero based index)
+  annot_col_id = 1
+
+  """ spots_input:
+  0: CN #
+  1: Act
+  2: Sc.
+  3: No.
+  4: DEPR spots (<siglum>, <surface-id>, <spot-id>, <top>, <left>, <breite>, <höhe>;)
+  5: not used notes
+  6: spots A
+  7: spots B
+  8: spots T
+  9: spots ME
+  """
+
+  # get spots from google spreadsheet (and overwrite existing)
+  if reload_spots:
+    print('* reloading spots for ' + act)
+    get_google_spreadsheet_as_csv (spreadsheet_key, file_spots, spreadsheet_sheet_id)
+
+  spots_input = []
+  spots = []
+
+  # read spot csv file
+  if insert_spots:
+    print(f'* reading spot file: {file_spots}...')
+    with open(file_spots, mode ='r') as file:
+      csvFile = csv.reader(file)
+      
+      # read lines and remove unused data
+      for line in csvFile:
+        # break
+        if line[0] == 'CN-No': continue
+        # print(line)
+        # spots_input.append(line[:5])
+        spots_input.append(line)
+
+
+  # for i, x in enumerate(spots_input):
+  #   print(i, x)
+
+
+
+
+  # transform coordinates
+  """
+  spot blueprint: <siglum>, <surface-id>, <spot-id>, <top>, <left>, <breite>, <höhe>;
+  sidenote: last 4 parameters will later be modified by script to <ulx>, <ulx>, <lrx>, <lry>
+  * ulx = left
+  * uly = top
+  * lrx = left + breite
+  * lry = top + höhe
+  """
+
+  # recalculate spots
+  if insert_spots:
+    print("* recalculating spots...")
+    for spots in spots_input:
+      # if spots[4] == '' or spots[0] == '': continue
+      if spots[0] == '': continue
+      # if spots[0] != '1211': continue
+      # print('   ', spots)
+      # for s in spots:
+      #   print('   ', s)
+      # print(spots)
+
+      # # remove spaces and trailing ';' and split
+      # spot = spots[4].replace(" ", "")
+      # # print ('spot:', spot)
+      # if spot[-1] == ';': spot = spot[:-1]
+      # spot = spot.split(';')
+      spot = []
+      for i in range(6, 13):
+        this_spot = spots[i].replace(" ", "")
+        # print('this_spot:', this_spot)
+        if len(this_spot) < 10: continue
+        if this_spot[-1] == ';': this_spot = this_spot[:-1]
+
+        # split if necessary
+        if ';' in this_spot:
+          for split_spot in this_spot.split(';'):
+            spot.append(split_spot)
+        else:
+          spot.append(this_spot)
+        # spot.append(spots[i].replace(" ", "").split(';'))
+      # print('spott:', spot)
+
+      
+      # calculate coordinates
+      spots_to_delete = []
+      for i, s in enumerate(spot):
+        # print('s:', s)
+        spot[i] = s.split(',')
+
+        # some spots still have the placeholder for spot-no
+        if len(spot[i]) == 7:
+          print('too long...')
+          del spot[i][2]
+
+        # if one coordinate is missing, remove that spot
+        if len(spot[i]) == 5:
+          # spot[i] == ''
+          print('too short...', spot[i])
+          # del spot[i]
+          spots_to_delete.append(i)
+          continue
+
+        # print('spot[i]:', spot[i])
+
+        # add spot id
+        # spot[i][2] = f'{spot_id:04d}'
+        spot[i].insert(2, f'{spot_id:04d}')
+        spot_id += 1
+
+        ulx = spot[i][4]
+        uly = spot[i][3]
+        lrx = str(int(spot[i][4]) + int(spot[i][5]))
+        lry = str(int(spot[i][3]) + int(spot[i][6]))
+
+        spot[i][3] = ulx
+        spot[i][4] = uly
+        spot[i][5] = lrx
+        spot[i][6] = lry
+
+        # find surface id
+        # print(spot[i][0])
+        # print(spot[i][1])
+        spot[i][1] = get_surface_xmlid_by_n(spot[i][0], spot[i][1])
+
+        spot[i] = ','.join(spot[i])
+        # print(spot[i])
+
+      # print('spots_to_delete:', spots_to_delete)
+      for i in spots_to_delete:
+        del spot[i]
+
+      spots[4] = ';'.join(spot)
+      # print(spots[4])
+      # print('spot:', spot)
+    # for spot_input in spots_input:
+    #   print(spot_input)
+    # print('spots_input:', spots_input)
+
+    # break
+
+  # print('')
+  # print('')
+  # for cn in spots_input:
+  #   print(cn)
+  # # print(spots_input[0])
+
+  # continue
+  # exit()
+
+  # open document
+  print(f'* open file: {in_file_cn}')
+  doc = docx.Document(in_file_cn)
+
+
+
+  # go over all cells in the first table
+  """CN table IDs
+  NOTE: id may chance, cause of word fuckup (?); check before running
+  0: CN No.
+  1: Annot-ID
+  2: Act
+  3: Scene
+  4: No.
+  5: fullname
+  6: first bar
+  7: last bar
+  8: first line
+  9: last line
+  10: System
+  11: Sources
+  12: spot title
+  13: spot
+  14: AdditionalIDs
+  15: Category
+  16: Note
+  17: Add. Edirom
+  """
+  actual_spot_id = 0
+  last_no = ''
+  last_name = ''
+  print("* iterating CN and adding annot_id, spots and split No. ...")
+  for i, row in enumerate(doc.tables[0].rows):
+    # first row is header
+    if i < 1: continue
+    # if i > 26: continue
+    # if i == 215: break
+
+    # print(row.cells[16].text)
+    # continue
+
+    # CN No.
+    cn_no = cn_id + i
+    # row.cells[0].paragraphs[0].text = str(cn_no)
+    # cn_no = int(row.cells[0].paragraphs[0].text)
+    # row.cells[0].paragraphs[0].text = cn_no
+    # print(row.cells[0].text)
+    print(cn_no)
+    # row.cells[0].text = str(cn_no)
+
+
+    # non_continue = [2, 3, 49, 235, 237, 734]
+    # if cn_no not in non_continue:
+    #   continue
+
+    # print(cn_no)
+    
+    # create new annot id
+    # annot_id = id_prefix + str(uuid.uuid4())
+    # row.cells[annot_col_id].paragraphs[0].text = annot_id
+
+
+    # act.scene
+    if row.cells[3].text != '':
+        # print(row.cells[3].text)
+        row.cells[2].text = row.cells[3].text.split(',')[0]
+        row.cells[3].text = row.cells[3].text.split(',')[1]
+
+        # replace wrong space with correct
+        row.cells[4].text = row.cells[4].text.replace(' ', ' ').replace(' ', ' ')
+        row.cells[10].text = row.cells[10].text.replace(' ', ' ').replace(' ', ' ')
+
+    # spots
+    if insert_spots:
+      try:
+          actual_spot = spots_input[actual_spot_id]
+      except:
+          # TODO: after last spot error will be thrown...
+          actual_spot = [-1]
+          # print(f'WARNING: could not find spot actual_spot_id: {actual_spot_id}')
+          pass
+      # print(actual_spot)
+      if int(actual_spot[0]) == cn_no:
+        # NOTE: check id
+        # print(actual_spot)
+        row.cells[13].paragraphs[0].text = actual_spot[4]
+        # print('actual_spot[4]:', actual_spot[4])
+        actual_spot_id += 1
+    
+
+
+    """
+    Die CNs für die Kategorie „S“ folgen also einem klaren Schema, das im Fall eines Rezitatives so aussieht:
+    "Aktnummer als römische Zahl, Szenennummer als arabische Ziffer, Recitativo, Taktangabe (Lineangabe), ggf. Rollenbezeichnung"
+
+    CN 2:
+    first line: before line 1
+    -> Sinfonia, (before line 1)
+    -> (before line 1)
+
+    CN 3:
+    first line: before line 1
+    -> XXXSinfonia, before bar 1 (before line 1)
+    -> Sinfonia, (before line 1)
+    -> (before line 1)
+
+    CN 49:
+    first bar: before bar 1
+    first line: before line 4
+    -> I,1 Recitativo, before bar 1 (after line 4)
+    -> before bar 1 (after line 4)
+
+    CN 235:
+    ...
+    -> I,6 Recitativo, bars 4-7 (lines 142-143), MET.
+    -> bars 4-7 (lines 142-143), MET.
+
+    CN 237:
+
+    CN 734:
+    -> No. 23, after bar 12 (after line 444), Hen.
+    -> after bar 12 (after line 444), Hen.
+
+    """
+
+    # # fix the shit with S annotations...
+    # category   = row.cells[15].paragraphs[0].text.strip()
+    # spot_title = row.cells[11].paragraphs[0].text.strip()
+    # additional_shit = [1725]
+    # if ('S' in category and 'Intro' not in spot_title) or cn_no in additional_shit:
+    #   # print(category, ':here we go!')
+
+    #   act        = row.cells[2].paragraphs[0].text.strip()
+    #   scene      = row.cells[3].paragraphs[0].text.strip()
+    #   no         = row.cells[4].paragraphs[0].text.strip()
+    #   full_name  = row.cells[5].paragraphs[0].text.strip()
+    #   first_bar  = row.cells[6].paragraphs[0].text.strip()
+    #   last_bar   = row.cells[7].paragraphs[0].text.strip()
+    #   first_line = row.cells[8].paragraphs[0].text.strip()
+    #   last_line  = row.cells[9].paragraphs[0].text.strip()
+    #   system     = row.cells[10].paragraphs[0].text.strip()
+    #   spot_title = ''
+
+    #   if first_bar != "":
+    #     if 'before' in first_bar or 'after' in first_bar or 'beside' in first_bar:
+    #       spot_title += first_bar
+    #     else:
+    #       if last_bar != "":
+    #         spot_title += "bars " + first_bar + "–" + last_bar
+    #       else:
+    #         spot_title += "bar " + first_bar
+
+    #   if first_line != "":
+    #     if first_bar != "":
+    #       spot_title += " "
+    #     if 'before' in first_line or 'after' in first_line or 'beside' in first_line:
+    #       spot_title += "(" + first_line + ")"
+    #     else:
+    #       if last_line != "":
+    #         spot_title += "(lines " + first_line + "–" + last_line + ")"
+    #       else:
+    #         spot_title += "(line " + first_line + ")"
+        
+    #   # clear bar & line cells
+    #   row.cells[6].paragraphs[0].text = ""
+    #   row.cells[7].paragraphs[0].text = ""
+    #   row.cells[8].paragraphs[0].text = ""
+    #   row.cells[9].paragraphs[0].text = ""
+
+    #   if system != "" and system != "Spot":
+    #     spot_title += ", " + system
+
+    #   # print('spot_title:', spot_title)
+
+    #   # add spot title to docx
+    #   row.cells[11].paragraphs[0].text = spot_title
+
+
+
+
+    # # split No and Full name if necessary
+    # # NOTE: check id
+    # this_no = row.cells[4].text.strip()
+    # this_name = row.cells[5].text.strip()
+    # print(i, this_no, '---', this_name)
+    # if this_no == last_no:
+    #   print("same")
+    #   row.cells[5].paragraphs[0].text = last_name
+    # elif this_no[:4] == "No. ":
+    #   no = this_no.split(" ")
+    #   print('new no: ', end='')
+    #   print(no)
+    #   last_no = no[0] + " " + no[1]
+    #   last_name = " ".join(no[2:])
+    #   print(last_name)
+    #   row.cells[4].paragraphs[0].text = last_no
+    #   row.cells[5].paragraphs[0].text = last_name
+    
+
+
+    # verbose
+    # print(i, annot_id)
+    # for i, c in enumerate(row.cells):
+    #   print(f'    {i:2d}:', c.paragraphs[0].text)
+
+
+  # write file
+  if write_output_file:
+    print(f'* write output file: {out_file_cn}')
+    doc.save(out_file_cn)
+
+  # convert to tei
+  if convert_to_tei:
+    print(f'converting to TEI: {out_file_cn_tei}')
+    convert_docx_to_tei(out_file_cn, out_file_cn_tei)
+
+
+print('done:', ', '.join([act for act in acts]))
+
+executionTime = (time.time() - startTime)
+print(f'script duration: {int(executionTime / 60)} m {int(executionTime % 60)} s {int((executionTime - int(executionTime)) * 10000)} ms')

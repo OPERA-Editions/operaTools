@@ -233,7 +233,17 @@ declare function local:getParticipantSourceID($participantSource) {
 :)
 
 declare function local:getConnectionPlistParticipantMEIparts($participantSource as node() , $mdiv as xs:string, $connectionParticipantNo as xs:string) {
-    concat(local:getParticipantSourceID($participantSource), '.xml#','measure_', $participantSource//mei:mdiv[@label = $mdiv]/@xml:id/string(), '_', $connectionParticipantNo, '')
+(:    concat(local:getParticipantSourceID($participantSource), '.xml#','measure_', $participantSource//mei:mdiv[@label = $mdiv]/@xml:id/string(), '_', $connectionParticipantNo, ''):)
+    let $p := functx:substring-before-if-contains($connectionParticipantNo, ', ')
+    let $begin := number(functx:substring-before-if-contains($p, '-'))
+    let $end := number(functx:substring-after-if-contains($p, '-'))
+    let $sequence :=
+        if ($begin < $end)
+        then(concat('?tstamp2=1m+', $end - $begin - 1))
+        else()
+
+    return
+        concat(local:getParticipantSourceID($participantSource), '.xml#','measure_', $participantSource//mei:mdiv[@label = $mdiv]/@xml:id/string(), '_', $begin, $sequence)
 };
 
 
@@ -264,8 +274,8 @@ declare function local:getConectionPlistParticipantString($participantSource, $m
         else (
             let $participantSourceMeasures2Connect :=   
                     (: text sources :)
-                    (: Lindpainter: opera_source_at14f1bb-d90b-420f-ba58-7643666ebat1 : AT1 :)
-                    if ($participantSource/mei:mei/@xml:id = 'opera_source_at14f1bb-d90b-420f-ba58-7643666ebat1')
+                    (: Lindpainter: source_at1 : AT1 :)
+                    if ($participantSource/mei:mei/@xml:id = 'source_at1')
                     then (
                         if (contains($connectionParticipantNo, ','))
                         then (
@@ -285,24 +295,65 @@ declare function local:getConectionPlistParticipantString($participantSource, $m
 (:                        else ($participantSource//mei:measure[@n = normalize-space(concat('', replace($connectionParticipantNo, '-', '–')))])):)
                     )
                     
+                    
+                    
+                    
                     (: music sources :)
                     (: Lindpaintner: edirom_source_b469fc92-e13c-446f-873b-0208454ec03d: B; opera_source_ea728ec0-2219-440b-9aed-273844486cc0: C; opera_source_d04ffca4-abe9-4320-b096-80bae356b8d0: D :)
-                    else if (($participantSource/mei:mei/@xml:id = 'edirom_source_b469fc92-e13c-446f-873b-0208454ec03d' or $participantSource/mei:mei/@xml:id = 'opera_source_ea728ec0-2219-440b-9aed-273844486cc0' or $participantSource/mei:mei/@xml:id = 'opera_source_d04ffca4-abe9-4320-b096-80bae356b8d0') and contains($connectionParticipantNo, ','))
+                    else if (($participantSource/mei:mei/@xml:id = 'source_a1' or $participantSource/mei:mei/@xml:id = 'source_a2' or $participantSource/mei:mei/@xml:id = 'source_a3' or $participantSource/mei:mei/@xml:id = 'source_a4' or $participantSource/mei:mei/@xml:id = 'source_b' or $participantSource/mei:mei/@xml:id = 'source_c') )
+                    (: and contains($connectionParticipantNo, ',') :)
                     then (
+                        let $p := functx:substring-before-if-contains($connectionParticipantNo, ', ')
+                        let $begin := number(functx:substring-before-if-contains($p, '-'))
+                        let $end := number(functx:substring-after-if-contains($p, '-'))
+                        return
+                            subsequence($participantSource//mei:measure[.//ancestor::mei:mdiv[@label = $mdiv]][number(@n) >= $begin and number(@n) <= $end](:[$end - $begin + 1]:), 1, $end - $begin + 1)
+
+                        (: that would be the best way but concordance cannot show more than one group of measures. and it does not work correctly if there are more then one occurences of @n in the same <mdiv> :)
+(:                        let $connectionParticipantNoT := tokenize($connectionParticipantNo, ', ')
+                            return
+                                for $p in $connectionParticipantNoT
+                                return
+                                    $participantSource//mei:measure[.//ancestor::mei:mdiv[@label = $mdiv]][number(@n) >= number(functx:substring-before-if-contains($p, '-')) and number(@n) <= number(functx:substring-after-if-contains($p, '-'))]:)
+                    
+                    
+                    
+                    
+(:                        if (contains(substring-before($connectionParticipantNo, ','), '-'))
+                        then (
+                            $participantSource//mei:measure[.//ancestor::mei:mdiv[@label = $mdiv]][number(@n) >= number(substring-before($connectionParticipantNo, '-')) and number(@n) <= number(substring-before(substring-after($connectionParticipantNo, '-'), ','))]
+                        )
+                        else(
+(\:                            $participantSource//mei:measure[.//ancestor::mei:mdiv[@label = $mdiv]][@n = normalize-space(substring-before($connectionParticipantNo, ','))]:\)
+                            let $connectionParticipantNoT := tokenize($connectionParticipantNo, ', ')
+                            return
+                                for $p in $connectionParticipantNoT
+                                return
+(\:                                    $participantSource//mei:measure[@n = normalize-space($p)]:\)
+                                    $participantSource//mei:measure[.//ancestor::mei:mdiv[@label = $mdiv]][@n = normalize-space($p)]
+                        ):)
+                    )
+                    
+                    
+                    
+                    
+(:                    then (
                         if (contains(substring-before($connectionParticipantNo, ','), '-'))
                         then (
                             $participantSource//mei:measure[.//ancestor::mei:mdiv[@label = $mdiv]][number(@n) >= number(substring-before($connectionParticipantNo, '-')) and number(@n) <= number(substring-before(substring-after($connectionParticipantNo, '-'), ','))]
                         )
                         else(
-(:                            $participantSource//mei:measure[.//ancestor::mei:mdiv[@label = $mdiv]][@n = normalize-space(substring-before($connectionParticipantNo, ','))]:)
+(\:                            $participantSource//mei:measure[.//ancestor::mei:mdiv[@label = $mdiv]][@n = normalize-space(substring-before($connectionParticipantNo, ','))]:\)
                             let $connectionParticipantNoT := tokenize($connectionParticipantNo, ', ')
                             return
                                 for $p in $connectionParticipantNoT
                                 return
-(:                                    $participantSource//mei:measure[@n = normalize-space($p)]:)
+(\:                                    $participantSource//mei:measure[@n = normalize-space($p)]:\)
                                     $participantSource//mei:measure[.//ancestor::mei:mdiv[@label = $mdiv]][@n = normalize-space($p)]
                         )
-                    )
+                    ):)
+                    
+                    
                     
                     (: Lindpaintner: edirom_source_b469fc92-e13c-446f-873b-0208454ec03d: B; opera_source_ea728ec0-2219-440b-9aed-273844486cc0: C; opera_source_d04ffca4-abe9-4320-b096-80bae356b8d0: D :)
                     else if (($participantSource/mei:mei/@xml:id = 'edirom_source_b469fc92-e13c-446f-873b-0208454ec03d' or $participantSource/mei:mei/@xml:id = 'opera_source_ea728ec0-2219-440b-9aed-273844486cc0' or $participantSource/mei:mei/@xml:id = 'opera_source_d04ffca4-abe9-4320-b096-80bae356b8d0') and contains($connectionParticipantNo, '+'))
@@ -312,9 +363,16 @@ declare function local:getConectionPlistParticipantString($participantSource, $m
 (:                        $participantSource//mei:measure[.//ancestor::mei:mdiv[@label = $mdiv]][number(@n) = number(substring-before($connectionParticipantNo, '-')) and number(@n) <= number(substring-after($connectionParticipantNo, '-'))]:)
                     )
                     
+                    
+                    
+                    
+                    
+                    
+                    
+                    
                     (: text edition :)
                     else if ($participantSource//tei:TEI/@xml:id = 'TextEdition')
-                    then ($participantSource//tei:l[number(@n) = number(functx:substring-before-if-contains($connectionParticipantNo, ','))] | $participantSource//tei:lb[@type = 'lineNum'][number(@n) = number(functx:substring-before-if-contains($connectionParticipantNo, ','))])
+                    then ($participantSource//tei:l[number(@n) = number(functx:substring-before-if-contains($connectionParticipantNo, ','))] | $participantSource//tei:seg[number(@n) = number(functx:substring-before-if-contains($connectionParticipantNo, ','))] | $participantSource//tei:lb[@type = 'lineNum'][number(@n) = number(functx:substring-before-if-contains($connectionParticipantNo, ','))])
 (:                    then ($participantSource//tei:l[@xml:id = 'line-322']):)
                     
                     
@@ -428,7 +486,7 @@ return $test
 let $concordancesCSVFile := element concordances {
 
                                 (: navigation by number & bar :)
-                                (:element concordance {
+                                element concordance {
                                     attribute name {'Navigation by number &amp; bar'},
                                     element groups {
                                         let $connectionType := 'bars'
@@ -440,33 +498,33 @@ let $concordancesCSVFile := element concordances {
                                                 attribute name {$mdiv},
                                                 element connections {
                                                     attribute label {'Bar'},
-(\:                                                    attribute row {$concRawData[position() =2][tokenize(., ',')[position() = 4] ]}:\)
-(\:                                                    for $row in $concRawData[position() > 1][tokenize(., ',')[position() = 4] = $mdiv]:\)
+(:                                                    attribute row {$concRawData[position() =2][tokenize(., ',')[position() = 4] ]}:)
+(:                                                    for $row in $concRawData[position() > 1][tokenize(., ',')[position() = 4] = $mdiv]:)
                                                     for $row in $concRawData[position() > 1][tokenize(., ';')[position() = 4] = $mdiv]
-(\:                                                        return $row:\)
+(:                                                        return $row:)
                                                         let $rowT := tokenize($row, ';')
                                                         
                                                         let $connectionNo := $rowT[position() = 5]
                                                         let $connectionParticipantNos := $rowT[position() > 5 and position() < 15]
-(\:                                                        return $connectionParticipantNos:\)
+(:                                                        return $connectionParticipantNos:)
                                                         
-                                                        (\: Lindpaitner:  6(1) = ME | 7(2) = A1 | 8(3) = A2 | 9(4) = A3 | 10(5) = A4 | 11(6) = B | 12(7) = C | 13(8) = AT1 :\)
+                                                        (: Lindpaitner:  6(1) = ME | 7(2) = A1 | 8(3) = A2 | 9(4) = A3 | 10(5) = A4 | 11(6) = B | 12(7) = C | 13(8) = AT1 :)
                                                         let $plist :=   for $connectionParticipantNo at $pos in $connectionParticipantNos
-(\:                                                        return $connectionParticipantNo:\)
-(\:                                                            return $pos:\)
-(\:                                                            return $ediConcSourcesCollection:\)
+(:                                                        return $connectionParticipantNo:)
+(:                                                            return $pos:)
+(:                                                            return $ediConcSourcesCollection:)
                                                                         let $participantSource := $ediConcSourcesCollection[$pos]
                                                                         where $pos < 10 and normalize-space($connectionParticipantNo) != ''
                                                                         return 
                                                                             local:getConectionPlistParticipantString($participantSource, $mdiv, $connectionParticipantNo, $connectionType)
-(\:                                                                            $connectionParticipantNo:\)
-(\:                                                        return $plist:\)
+(:                                                                            $connectionParticipantNo:)
+(:                                                        return $plist:)
                                                         return
                                                             element connection {
-(\:                                                                attribute sourcecollectioncount {count($ediConcSourcesCollection)},:\)
-(\:                                                                attribute row {$row},:\)
-(\:                                                                attribute cPN { fn:string-join($connectionParticipantNos, ',') },:\)
-(\:                                                                attribute mdiv { $mdiv },:\)
+(:                                                                attribute sourcecollectioncount {count($ediConcSourcesCollection)},:)
+(:                                                                attribute row {$row},:)
+(:                                                                attribute cPN { fn:string-join($connectionParticipantNos, ',') },:)
+(:                                                                attribute mdiv { $mdiv },:)
                                                                 attribute name {$connectionNo},
                                                                 attribute plist {$plist}
                                                             }
@@ -475,13 +533,13 @@ let $concordancesCSVFile := element concordances {
                                     }
                                     
                                         
-                                } ,:)
+                                } (:,
                                 
                                 element concordance {
-                                    attribute name {'Navigation by scene/text line'},
+                                    attribute name {'Navigation by text line'},
                                     element groups {
-                                        (: navigation by scene :)
-                                        (:element group {
+                                        (\: navigation by scene :\)
+                                        (\:element group {
                                             attribute name {'Scene'},
                                             element connections {
                                             let $connectionType := 'scenes'
@@ -549,9 +607,9 @@ let $concordancesCSVFile := element concordances {
                                                         attribute plist {$plist}
                                                         }
                                             }
-                                        },:)
+                                        },:\)
                                         
-                                        (: navigation by text line :)
+                                        (\: navigation by text line :\)
                                         element group {
                                             attribute name {'Text line'},
                                             element connections {
@@ -571,14 +629,14 @@ let $concordancesCSVFile := element concordances {
                                                                         local:getConectionPlistParticipantString($participantSource, $mdiv, $connectionParticipantNo, $connectionType)
                                                         return
                                                             element connection {
-                                                                attribute mdiv {$mdiv},
+(\:                                                                attribute mdiv {$mdiv},:\)
                                                                 attribute name {$connectionNo},
                                                                 attribute plist {$plist}
                                                                 }
                                             }
                                         }
                                     }
-                                }
+                                }:)
                             }
                                         
 

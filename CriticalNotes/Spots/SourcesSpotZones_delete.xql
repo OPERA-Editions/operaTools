@@ -16,14 +16,16 @@ declare option saxon:output "media-type=text/xml";
 declare option saxon:output "omit-xml-declaration=yes";
 declare option saxon:output "indent=no";
 
-let $editionID := 'edition-74338566'
-let $workID := 'opera_work_04300c1e-10ad-408e-9665-aff63edf3e1f'
+let $editionID := 'edition-74338565'
+let $workID := 'edirom_work_a2d35700-0012-413a-be06-77feea8aff60'
 
 let $contentsBasePath := concat('../../../', $editionID, '/')
 let $sourcesDocs := collection(concat($contentsBasePath, 'sources/?select=*.xml'))
 
 for $source in $sourcesDocs
 let $sourceDoc := doc(document-uri($source))
+(:let $spotZones := $sourceDoc//zone[@type = 'operaAnnotSpotME']:)
+(:let $spotZones := $sourceDoc//zone[@type = 'operaAnnotSpotTE']:)
 let $spotZones := $sourceDoc//zone[@type = 'operaAnnotSpot']
 return
     delete nodes $spotZones
