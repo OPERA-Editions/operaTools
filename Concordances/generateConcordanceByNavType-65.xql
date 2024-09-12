@@ -183,8 +183,10 @@ declare function local:getConnectionPlistParticipantPrefix($participantSource) {
     (:if ($participantSource/tei:TEI)
     then (concat('xmldb:exist:///db/contents/', $editionIDPrefix, $editionID, '/texts/')):)
     if ($participantSource/tei:TEI or $participantSource/mei:mei/@xml:id = 'm-1')
-    then (concat('xmldb:exist:///db/contents/', $editionIDPrefix, $editionID, '/edition/'))
-    else (concat('xmldb:exist:///db/contents/', $editionIDPrefix, $editionID, '/sources/'))
+    (:then (concat('xmldb:exist:///db/contents/', $editionIDPrefix, $editionID, '/edition/'))
+    else (concat('xmldb:exist:///db/contents/', $editionIDPrefix, $editionID, '/sources/')):)
+    then (concat('xmldb:exist:///db/apps/edirom/', $editionIDPrefix, $editionID, '/edition/'))
+    else (concat('xmldb:exist:///db/apps/edirom/', $editionIDPrefix, $editionID, '/sources/'))
 };
 
 
@@ -487,17 +489,42 @@ let $concordancesCSVFile := element concordances {
 
                                 (: navigation by number & bar :)
                                 element concordance {
-                                    attribute name {'Navigation by number &amp; bar'},
+                                    (:attribute name {'Navigation by number &amp; bar'},:)
+                                    element names {
+                                        element name {
+                                            attribute xml:lang {'en'},
+                                            'Navigation by number &amp; bar'
+                                        }
+                                    },
                                     element groups {
+                                        element names {
+                                            element name {
+                                                attribute xml:lang {'en'}
+                                            }
+                                        },
                                         let $connectionType := 'bars'
                                         let $concRawData := local:getConcRawData($ediConcType, $connectionType)
                                         let $ediConcSourcesCollection := local:getEdiConcSourcesCollectionFromCSVData($concRawData, $connectionType)
                                         for $mdiv in $mdivsReference
                                         return
                                             element group {
-                                                attribute name {$mdiv},
+                                                (:attribute name {$mdiv},:)
+                                                element names {
+                                                    element name {
+                                                        attribute xml:lang {'en'},
+                                                        $mdiv
+                                                    }
+                                                },
+                                                
+                                                
                                                 element connections {
-                                                    attribute label {'Bar'},
+                                                    (:attribute label {'Bar'},:)
+                                                    element names {
+                                                        element name {
+                                                            attribute xml:lang {'en'},
+                                                            'Bar'
+                                                        }
+                                                    },
 (:                                                    attribute row {$concRawData[position() =2][tokenize(., ',')[position() = 4] ]}:)
 (:                                                    for $row in $concRawData[position() > 1][tokenize(., ',')[position() = 4] = $mdiv]:)
                                                     for $row in $concRawData[position() > 1][tokenize(., ';')[position() = 4] = $mdiv]
@@ -536,11 +563,28 @@ let $concordancesCSVFile := element concordances {
                                 } (:,
                                 
                                 element concordance {
-                                    attribute name {'Navigation by text line'},
+                                    (\:attribute name {'Navigation by text line'},:\)
+                                    element names {
+                                        element name {
+                                            attribute xml:lang {'en'},
+                                            'Navigation by text line'
+                                        }
+                                    },
                                     element groups {
+                                        element names {
+                                            element name {
+                                                attribute xml:lang {'en'}
+                                            }
+                                        },
                                         (\: navigation by scene :\)
                                         (\:element group {
-                                            attribute name {'Scene'},
+                                            (\:attribute name {'Scene'},:\)
+                                            element names {
+                                                element name {
+                                                    attribute xml:lang {'en'},
+                                                    'Scene'
+                                                }
+                                            },
                                             element connections {
                                             let $connectionType := 'scenes'
                                             let $concRawData := local:getConcRawData($ediConcType, $connectionType)
@@ -611,8 +655,20 @@ let $concordancesCSVFile := element concordances {
                                         
                                         (\: navigation by text line :\)
                                         element group {
-                                            attribute name {'Text line'},
+                                            (\:attribute name {'Text line'},:\)
+                                            element names {
+                                                element name {
+                                                    attribute xml:lang {'en'},
+                                                    'Text line'
+                                                }
+                                            },
                                             element connections {
+                                                element names {
+                                                    element name {
+                                                        attribute xml:lang {'en'},
+                                                        'Line'
+                                                    }
+                                                },
                                                 let $connectionType := 'lines'
                                                 let $concRawData := local:getConcRawData($ediConcType, $connectionType)
                                                 let $ediConcSourcesCollection := local:getEdiConcSourcesCollectionFromCSVData($concRawData, $connectionType)
