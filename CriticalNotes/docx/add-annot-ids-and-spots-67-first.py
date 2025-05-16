@@ -47,13 +47,13 @@ convert_to_tei = True
 # shall the spots be reloaded?
 reload_spots = False
 # shall the spots be inserted?
-insert_spots = True
+insert_spots = False
 
 
 cn_path = '/Users/tbachmann/repos/opera/edition-74338567/resources/CN/'
 
 # chose the acts
-# name, gid, annot_no start, input file, output file
+# name, gid, annot_no start, input file, output file, g-id, g-sheetid, spot-start-id
 cn_docs = [
   # https://docs.google.com/document/d/1fVXvd_OFqcGomBztwYO6eiiWgCift6tmVrn6oZTYyDA/edit?pli=1
   # cn: https://docs.google.com/spreadsheets/d/1ttb7FSfHO9gXd450TCrRtrf3jObXwD_6mLBt52cP5e4/edit?gid=0#gid=0
@@ -71,6 +71,7 @@ id_prefix = "opera_annot_"
 annot_col_id = 1
 
 # sources
+# TODO: read sources from path
 source_files_path = '/Users/tbachmann/repos/opera/edition-74338567/sources/'
 source_files = {
   'A': 'opera_source_af56ff93-664f-4df2-817c-5ad6d826e850.xml',
@@ -533,7 +534,7 @@ for cn_doc in cn_docs:
     # if i == 200: break
     # if i < 10: continue
 
-    print('CN:', row.cells[1].text)
+    # print('CN:', row.cells[1].text)
 
     # add CN ID
     row.cells[0].text = str(i)
@@ -544,6 +545,7 @@ for cn_doc in cn_docs:
     # row.cells[annot_col_id].paragraphs[6].text = annot_id
     row.cells[annot_col_id].text = annot_id
     
+    # sources
     this_sources = row.cells[3].text
     # print('this_sources first:', this_sources)
     this_sources = re.sub(r', D \([0-9, ]*\)', '', this_sources, count=1)
@@ -580,13 +582,13 @@ for cn_doc in cn_docs:
 
     # act
     if 'Introductory Note' in full_name:
-      print('TODO: Introductory Note')
+      # print('TODO: Introductory Note')
       row.cells[10].text = full_name
       # TODO: IN stuff
       # continue
 
     elif 'indication' in full_name:
-      print('TODO: indication')
+      # print('TODO: indication')
       row.cells[10].text = full_name
       # TODO: AI stuff
       # continue
