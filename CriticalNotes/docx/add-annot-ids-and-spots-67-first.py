@@ -53,13 +53,16 @@ insert_spots = False
 cn_path = '/Users/tbachmann/repos/opera/edition-74338567/resources/CN/'
 
 # chose the acts
-# name, gid, annot_no start, input file, output file, g-id, g-sheetid, spot-start-id
+# 0: name, 1: gid, 2: annot_no start, 3: input file, 4: output file, [5: spot g-id, 6: spot g-sheetid, 7: spot-start-id, [8: out_file_cn_tei]]
 cn_docs = [
   # https://docs.google.com/document/d/1fVXvd_OFqcGomBztwYO6eiiWgCift6tmVrn6oZTYyDA/edit?pli=1
   # cn: https://docs.google.com/spreadsheets/d/1ttb7FSfHO9gXd450TCrRtrf3jObXwD_6mLBt52cP5e4/edit?gid=0#gid=0
   # ['I-I', '1fVXvd_OFqcGomBztwYO6eiiWgCift6tmVrn6oZTYyDA', 1, 'CN_first', 'CN_first_addedcols']
   # ['I-I', '1fVXvd_OFqcGomBztwYO6eiiWgCift6tmVrn6oZTYyDA', 1, 'CN_first_addedcols', 'CN_first_addedcols_out']
-  ['I-I', '1fVXvd_OFqcGomBztwYO6eiiWgCift6tmVrn6oZTYyDA', 1, 'CN_first', 'CN_first_addedcols_out', '/Users/tbachmann/repos/opera/edition-74338567/resources/CN/giselle_spots.csv', '1ttb7FSfHO9gXd450TCrRtrf3jObXwD_6mLBt52cP5e4', '0', 1]
+  ['Giselle CN', '1fVXvd_OFqcGomBztwYO6eiiWgCift6tmVrn6oZTYyDA', 1, 'CN_first', 'CN_first_addedcols_out', '/Users/tbachmann/repos/opera/edition-74338567/resources/CN/giselle_spots.csv', '1ttb7FSfHO9gXd450TCrRtrf3jObXwD_6mLBt52cP5e4', '0', 1],
+  # TODO: Appendix
+  # https://docs.google.com/document/d/1VpSQDrBFXn-spyzG8aCU-v_pKRbMHrWXQD0n9sowwoo/edit?tab=t.0
+  # ['Giselle CN Appendix', '1VpSQDrBFXn-spyzG8aCU-v_pKRbMHrWXQD0n9sowwoo', 1, 'CN_App_first', 'CN_App_first_addedcols_out', 'x', 'x', 'x', 1],
   # path-to-csv-file, spot-spreadsheet-key, spot-spreadsheet-id, spot-id-start
   # ['I-I', '1fVXvd_OFqcGomBztwYO6eiiWgCift6tmVrn6oZTYyDA', 1, 'CN_first_part2', 'CN_first_part2_dev']
   # ['I-I', '1fVXvd_OFqcGomBztwYO6eiiWgCift6tmVrn6oZTYyDA', 1, 'CN_first_part2_dev', 'CN_first_part2_dev_out']
@@ -276,126 +279,126 @@ def get_surface_xmlid_by_n(source, n):
           # print('surface_n:', surface_n)
           return surface_xmlid
 
-def read_spots_from_file():
-  print(f'* reading spot file: {spots_file}...')
-  with open(spots_file, mode ='r') as file:
-    csvFile = csv.reader(file)
+# def read_spots_from_file():
+#   print(f'* reading spot file: {spots_file}...')
+#   with open(spots_file, mode ='r') as file:
+#     csvFile = csv.reader(file)
     
-    # read lines and remove unused data
-    for line in csvFile:
-      # break
-      if line[0] == 'CN-No': continue
-      # print(line)
-      # spots_input.append(line[:5])
-      spots_input.append(line)
-  return spots_input
+#     # read lines and remove unused data
+#     for line in csvFile:
+#       # break
+#       if line[0] == 'CN-No': continue
+#       # print(line)
+#       # spots_input.append(line[:5])
+#       spots_input.append(line)
+#   return spots_input
 
 
-def recalculate_spots(spots, spot_start_id):
-  """ spots_input:
-  0: CN #
-  1: No.
-  2: spots A
-  3: spots B
-  4: spots C
-  5: spots ME
+# def recalculate_spots(spots, spot_start_id):
+#   """ spots_input:
+#   0: CN #
+#   1: No.
+#   2: spots A
+#   3: spots B
+#   4: spots C
+#   5: spots ME
 
-  # transform coordinates
-  spot blueprint: <siglum>, <surface-id>, <spot-id>, <top>, <left>, <breite>, <höhe>;
-  sidenote: last 4 parameters will later be modified by script to <ulx>, <ulx>, <lrx>, <lry>
-  * ulx = left
-  * uly = top
-  * lrx = left + breite
-  * lry = top + höhe
-  """
+#   # transform coordinates
+#   spot blueprint: <siglum>, <surface-id>, <spot-id>, <top>, <left>, <breite>, <höhe>;
+#   sidenote: last 4 parameters will later be modified by script to <ulx>, <ulx>, <lrx>, <lry>
+#   * ulx = left
+#   * uly = top
+#   * lrx = left + breite
+#   * lry = top + höhe
+#   """
 
-  spots_output = {}
-  print("* recalculating spots...")
-  for spots in spots_input:
+#   spots_output = {}
+#   print("* recalculating spots...")
+#   for spots in spots_input:
 
-    tmp = ''
+#     tmp = ''
 
-    # if spots[4] == '' or spots[0] == '': continue
-    if spots[0] == '': continue
-    # if spots[0] != '1211': continue
-    # print('   spots:', spots)
-    # for s in spots:
-    #   print('   ', s)
+#     # if spots[4] == '' or spots[0] == '': continue
+#     if spots[0] == '': continue
+#     # if spots[0] != '1211': continue
+#     # print('   spots:', spots)
+#     # for s in spots:
+#     #   print('   ', s)
     
 
-    # # remove spaces and trailing ';' and split
-    # spot = spots[4].replace(" ", "")
-    # # print ('spot:', spot)
-    # if spot[-1] == ';': spot = spot[:-1]
-    # spot = spot.split(';')
-    spot = []
-    for i in range(2, 6):
-      this_spot = spots[i].replace(" ", "")
-      # print('this_spot:', this_spot)
-      if len(this_spot) < 10: continue
-      if this_spot[-1] == ';': this_spot = this_spot[:-1]
+#     # # remove spaces and trailing ';' and split
+#     # spot = spots[4].replace(" ", "")
+#     # # print ('spot:', spot)
+#     # if spot[-1] == ';': spot = spot[:-1]
+#     # spot = spot.split(';')
+#     spot = []
+#     for i in range(2, 6):
+#       this_spot = spots[i].replace(" ", "")
+#       # print('this_spot:', this_spot)
+#       if len(this_spot) < 10: continue
+#       if this_spot[-1] == ';': this_spot = this_spot[:-1]
 
-      # split if necessary
-      if ';' in this_spot:
-        for split_spot in this_spot.split(';'):
-          # print('split_spot:', split_spot)
-          spot.append(split_spot)
-      else:
-        spot.append(this_spot)
-      # spot.append(spots[i].replace(" ", "").split(';'))
-    # print('spot:', spot)
+#       # split if necessary
+#       if ';' in this_spot:
+#         for split_spot in this_spot.split(';'):
+#           # print('split_spot:', split_spot)
+#           spot.append(split_spot)
+#       else:
+#         spot.append(this_spot)
+#       # spot.append(spots[i].replace(" ", "").split(';'))
+#     # print('spot:', spot)
 
 
     
-    # calculate coordinates
-    for i, s in enumerate(spot):
-      # print('s:', s)
-      this_spot = s.split(',')
+#     # calculate coordinates
+#     for i, s in enumerate(spot):
+#       # print('s:', s)
+#       this_spot = s.split(',')
 
-      # some spots still have the placeholder for spot-no
-      if len(this_spot) == 7:
-        print('too long...', this_spot)
-        continue
+#       # some spots still have the placeholder for spot-no
+#       if len(this_spot) == 7:
+#         print('too long...', this_spot)
+#         continue
 
-      # if one coordinate is missing, remove that spot
-      if len(this_spot) == 5:
-        print('too short...', this_spot)
-        continue
+#       # if one coordinate is missing, remove that spot
+#       if len(this_spot) == 5:
+#         print('too short...', this_spot)
+#         continue
 
-      # print('this_spot:', this_spot)
+#       # print('this_spot:', this_spot)
 
-      # add spot id
-      # this_spot[2] = f'{spot_id:04d}'
-      this_spot.insert(2, f'{spot_start_id:04d}')
-      spot_start_id += 1
+#       # add spot id
+#       # this_spot[2] = f'{spot_id:04d}'
+#       this_spot.insert(2, f'{spot_start_id:04d}')
+#       spot_start_id += 1
 
-      # print('this_spot:', this_spot)
+#       # print('this_spot:', this_spot)
 
-      ulx = this_spot[4]
-      uly = this_spot[3]
-      lrx = str(int(this_spot[4]) + int(this_spot[5]))
-      lry = str(int(this_spot[3]) + int(this_spot[6]))
+#       ulx = this_spot[4]
+#       uly = this_spot[3]
+#       lrx = str(int(this_spot[4]) + int(this_spot[5]))
+#       lry = str(int(this_spot[3]) + int(this_spot[6]))
 
-      this_spot[3] = ulx
-      this_spot[4] = uly
-      this_spot[5] = lrx
-      this_spot[6] = lry
+#       this_spot[3] = ulx
+#       this_spot[4] = uly
+#       this_spot[5] = lrx
+#       this_spot[6] = lry
 
-      # find surface id
-      # print(this_spot[0])
-      this_spot[1] = get_surface_xmlid_by_n(sources[this_spot[0]], int(this_spot[1]))
-      # print('this_spot[1]:', this_spot[1])
-      # print('this_spot:', ','.join(this_spot))
+#       # find surface id
+#       # print(this_spot[0])
+#       this_spot[1] = get_surface_xmlid_by_n(sources[this_spot[0]], int(this_spot[1]))
+#       # print('this_spot[1]:', this_spot[1])
+#       # print('this_spot:', ','.join(this_spot))
 
-      if len(tmp) != 0:
-        tmp += ';'
-      # print('tmp:', tmp)
-      tmp += ','.join(this_spot)
-      # print('spots_output[-1]:', spots_output[-1])
-    spots_output[int(spots[0])] = tmp
+#       if len(tmp) != 0:
+#         tmp += ';'
+#       # print('tmp:', tmp)
+#       tmp += ','.join(this_spot)
+#       # print('spots_output[-1]:', spots_output[-1])
+#     spots_output[int(spots[0])] = tmp
 
-  # print('spots_output:', spots_output)
-  return spots_output
+#   # print('spots_output:', spots_output)
+#   return spots_output
 
 
 
@@ -415,23 +418,26 @@ for cn_doc in cn_docs:
   # * add annot_id
   # * split "No., bar, ...""
   
-  ### SPOTS
-  spots_file = cn_doc[5]
-  spots_spreadsheet_key = cn_doc[6]
-  spots_spreadsheet_sheed_id = cn_doc[7]
-  spot_start_id = cn_doc[8]
 
-  # get spots from google spreadsheet (and overwrite existing)
-  if reload_spots:
-    print('* reloading spots')
-    get_google_spreadsheet_as_csv (spots_spreadsheet_key, spots_file, spots_spreadsheet_sheed_id)
 
-  spots_input = []
-  spots = []
+  # ### SPOTS
+  ## NO SPOTS HERE
+  # spots_file = cn_doc[5]
+  # spots_spreadsheet_key = cn_doc[6]
+  # spots_spreadsheet_sheed_id = cn_doc[7]
+  # spot_start_id = cn_doc[8]
 
-  # read spot csv file
-  spots_input = read_spots_from_file()
-  spots_input = recalculate_spots(spots_input, spot_start_id)
+  # # get spots from google spreadsheet (and overwrite existing)
+  # if reload_spots:
+  #   print('* reloading spots')
+  #   get_google_spreadsheet_as_csv (spots_spreadsheet_key, spots_file, spots_spreadsheet_sheed_id)
+
+  # spots_input = []
+  # spots = []
+
+  # # read spot csv file
+  # spots_input = read_spots_from_file()
+  # spots_input = recalculate_spots(spots_input, spot_start_id)
 
   # for cnno, spot in spots_input.items():
   #   print(cnno, spot)
@@ -446,7 +452,8 @@ for cn_doc in cn_docs:
   output_file = cn_path + cn_doc[4] + '.docx'
 
   # download file
-  if not DEV and False:
+  if not DEV or True:
+    print('* downloading file from google docs')
     get_google_spreadsheet_as_docx(input_gid, input_file)
 
 
@@ -592,6 +599,11 @@ for cn_doc in cn_docs:
       row.cells[10].text = full_name
       # TODO: AI stuff
       # continue
+    elif 'Title' in full_name:
+      # print('TODO: Title')
+      row.cells[10].text = full_name
+      # TODO: Title stuff
+      # continue
     else:
 
       ##### BARS
@@ -682,28 +694,29 @@ for cn_doc in cn_docs:
 
 
 
-    #### spots
-    if insert_spots:
-      # print('* inserting spots...')
-      # print(spots_input[i])
-      try:
-          # actual_spot = spots_input[actual_spot_id]
-          # print('spots_input[i]:', spots_input[i])
-          row.cells[11].paragraphs[0].text = spots_input[i]
-      except:
-          # print('* no spots found for cn', i)
-          pass
-      #     # TODO: after last spot error will be thrown...
-      #     actual_spot = [-1]
-      #     # print(f'WARNING: could not find spot actual_spot_id: {actual_spot_id}')
-      #     pass
-      # # print(actual_spot)
-      # if int(actual_spot[0]) == i: #cn_no:
-      #   # NOTE: check id
-      #   # print(actual_spot)
-      #   row.cells[12].paragraphs[0].text = actual_spot[4]
-      #   # print('actual_spot[4]:', actual_spot[4])
-      #   actual_spot_id += 1
+    # #### spots
+    ## NO SPOTS HERE
+    # if insert_spots:
+    #   # print('* inserting spots...')
+    #   # print(spots_input[i])
+    #   try:
+    #       # actual_spot = spots_input[actual_spot_id]
+    #       # print('spots_input[i]:', spots_input[i])
+    #       row.cells[11].paragraphs[0].text = spots_input[i]
+    #   except:
+    #       # print('* no spots found for cn', i)
+    #       pass
+    #   #     # TODO: after last spot error will be thrown...
+    #   #     actual_spot = [-1]
+    #   #     # print(f'WARNING: could not find spot actual_spot_id: {actual_spot_id}')
+    #   #     pass
+    #   # # print(actual_spot)
+    #   # if int(actual_spot[0]) == i: #cn_no:
+    #   #   # NOTE: check id
+    #   #   # print(actual_spot)
+    #   #   row.cells[12].paragraphs[0].text = actual_spot[4]
+    #   #   # print('actual_spot[4]:', actual_spot[4])
+    #   #   actual_spot_id += 1
 
 
 

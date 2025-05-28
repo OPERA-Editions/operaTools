@@ -48,6 +48,8 @@ convert_to_tei = True
 reload_spots = False
 # shall the spots be inserted?
 insert_spots = True
+# shall the input file be reloaded?
+reload_file = True
 
 
 cn_path = '/Users/tbachmann/repos/opera/edition-74338567/resources/CN/'
@@ -60,7 +62,9 @@ cn_docs = [
   # ['I-I', '1fVXvd_OFqcGomBztwYO6eiiWgCift6tmVrn6oZTYyDA', 1, 'CN_first', 'CN_first_addedcols']
   # ['I-I', '1fVXvd_OFqcGomBztwYO6eiiWgCift6tmVrn6oZTYyDA', 1, 'CN_first_addedcols', 'CN_first_addedcols_out']
   # ['I-I', '1fVXvd_OFqcGomBztwYO6eiiWgCift6tmVrn6oZTYyDA', 1, 'CN_first', 'CN_first_addedcols_out', '/Users/tbachmann/repos/opera/edition-74338567/resources/CN/giselle_spots.csv', '1ttb7FSfHO9gXd450TCrRtrf3jObXwD_6mLBt52cP5e4', '0', 1]
-  ['I-I', '', 1, 'CN_first_addedcols_out', 'CN_second_out', '/Users/tbachmann/repos/opera/edition-74338567/resources/CN/giselle_spots.csv', '1ttb7FSfHO9gXd450TCrRtrf3jObXwD_6mLBt52cP5e4', '0', 1, '../edition-74338567/resources/CN/CN_Giselle.xml']
+  # CN_first_addedcols_out: https://docs.google.com/document/d/1rAlGi8w-uAvho8Giq_tu-YiewDIJ-ahzDfH_SBT1rXY/edit?usp=sharing
+  # spots: 1ttb7FSfHO9gXd450TCrRtrf3jObXwD_6mLBt52cP5e4
+  ['I-I', '1rAlGi8w-uAvho8Giq_tu-YiewDIJ-ahzDfH_SBT1rXY', 1, 'CN_first_addedcols_out', 'CN_second_out', '/Users/tbachmann/repos/opera/edition-74338567/resources/CN/giselle_spots.csv', '1ttb7FSfHO9gXd450TCrRtrf3jObXwD_6mLBt52cP5e4', '0', 1, '../edition-74338567/resources/CN/CN_Giselle.xml']
   # path-to-csv-file, spot-spreadsheet-key, spot-spreadsheet-id, spot-id-start
   # ['I-I', '1fVXvd_OFqcGomBztwYO6eiiWgCift6tmVrn6oZTYyDA', 1, 'CN_first_part2', 'CN_first_part2_dev']
   # ['I-I', '1fVXvd_OFqcGomBztwYO6eiiWgCift6tmVrn6oZTYyDA', 1, 'CN_first_part2_dev', 'CN_first_part2_dev_out']
@@ -96,11 +100,13 @@ DEV = True
 
 # function to read google doc docx file and safe to disc
 def get_google_spreadsheet_as_docx (spreadsheet_key, output_file):
+    print('* reloading file from google docs...')
     # response = requests.get('https://docs.google.com/spreadsheet/ccc?key=' + spreadsheet_key + '&gid=' + sheet_id + '&output=csv')
     # https://docs.google.com/document/d/1fVXvd_OFqcGomBztwYO6eiiWgCift6tmVrn6oZTYyDA/edit
     # https://docs.google.com/document/d/1fVXvd_OFqcGomBztwYO6eiiWgCift6tmVrn6oZTYyDA/edit?usp=sharing
     # https://docs.google.com/document/export?format=docx&id=1fVXvd_OFqcGomBztwYO6eiiWgCift6tmVrn6oZTYyDA
     response = requests.get('https://docs.google.com/document/export?format=docx&id=' + spreadsheet_key)
+    print('response:', response)
     assert response.status_code == 200, 'Wrong status code'
     # response.encoding = 'utf-8'
     # spreadsheet_content = response.text
@@ -319,7 +325,9 @@ for cn_doc in cn_docs:
   output_file = cn_path + cn_doc[4] + '.docx'
 
   # download file
-  if not DEV and False:
+  if reload_file:
+    # print('* reloading file')
+    # TODO: update file names / paths
     input_gid = cn_doc[1]
     input_annot_no_start = cn_doc[2]
     get_google_spreadsheet_as_docx(input_gid, input_file)
