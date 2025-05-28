@@ -171,17 +171,37 @@ def get_google_spreadsheet_as_csv (spreadsheet_key, output_file, sheet_id):
         # writing the data rows  
         csv_writer.writerows(csv_list)
 
+def char_range(c1, c2):
+    """Generates the characters from `c1` to `c2`, inclusive."""
+    for c in range(ord(c1), ord(c2)+1):
+        yield chr(c)
+
+
 def expand_measure_ranges (this_range):
+  # print('expand_measure_ranges: this_range:', this_range)
   tmp = []
   if len(this_range) == 2:
-    for x in range(int(this_range[0]), int(this_range[1]) + 1):
-      tmp.append(str(x))
-    return tmp
+    try:
+      # if ints
+      for x in range(int(this_range[0]), int(this_range[1]) + 1):
+        # print('x:', x)
+        tmp.append(str(x))
+      return tmp
+    except:
+      # if no pure ints...
+      # print(int(this_range[0][:-1]), this_range[0][-1])
+      first_char = this_range[0][-1]
+      second_char = this_range[1][-1]
+      # print('first_char:', first_char, '   second_char:', second_char)
+      for x in char_range(first_char, second_char):
+        # print('x:', x)
+        tmp.append(this_range[0][:-1] + x)
+      return tmp
   else :
     return this_range
 
 def get_id_from_measure(number, sigle, bar):
-  # print('get_id_from_measure:', number, sigle, bar)
+  print(f'get_id_from_measure: {number}, {sigle}, {bar}')
 
   # surfaces_A    = file_A   .getElementsByTagName('surface')
   # surface_xmlid = surface.attributes['xml:id'].value
@@ -259,6 +279,7 @@ def get_id_from_measure(number, sigle, bar):
   for extra in extras:
     # print(int(bar), extra[2])
     if sigle == extra[0] and number == extra[1] and int(bar) ==  extra[2]:
+      print('found extra:', extra[3])
       return extra[3]
 
   this_id = ''
@@ -267,7 +288,7 @@ def get_id_from_measure(number, sigle, bar):
       for measure in mdiv.getElementsByTagName('measure'):
         if measure.attributes['n'].value == bar:
           this_id = measure.attributes['xml:id'].value
-  # print('this_id :', this_id)
+  print('this_id :', this_id)
   return this_id
 
 def get_surface_xmlid_by_n(source, n):
@@ -394,10 +415,10 @@ for cn_doc in cn_docs:
     if i == 0: continue
     # print('=====', row.cells[2].text)
 
-    if i == 3: break
-    # if i < 10: continue
+    if i == 26: break
+    if i < 25: continue
 
-    # print('CN:', row.cells[1].text)
+    print(f'=== CN {i}:', row.cells[1].text)
 
     # add CN ID
     row.cells[0].text = str(i)
@@ -418,8 +439,8 @@ for cn_doc in cn_docs:
 
     this_sources = this_sources.split(', ')
     this_source = [x.strip() for x in this_sources]
-    this_sources.append('ME')
-    # print('this_sources:', this_sources)
+    # this_sources.append('ME')
+    print('this_sources:', this_sources)
 
     additional_ids = []
 
@@ -435,11 +456,14 @@ for cn_doc in cn_docs:
     # split full_name
     full_name = row.cells[1].text
     full_name_split = [x.strip() for x in full_name.split(',')]
-    # print(i, full_name_split)
+    print(i, full_name_split)
 
     # print(full_name_split[])
 
     this_no = full_name_split[0]
+    excerpt = re.findall("Excerpt [0-9]*", full_name_split[1])[0]
+    if excerpt !='':
+      this_no += ' – ' + excerpt
     print('this_no:', this_no)
     row.cells[7].text = this_no
 
@@ -476,13 +500,13 @@ for cn_doc in cn_docs:
       # bars 34‒35 and 41–42   => CN 17, 18
       # ! 'bars 34–35', '36–37 and 41–46'  => CN 19
 
-      if len(full_name_split) > 2 and 'and' in full_name_split[2] and not '(' in full_name_split[2]:
+      if len(full_name_split) > 2 and 'and' in full_name_split[3] and not '(' in full_name_split[3]:
         full_name_split[1] += ' ' + full_name_split[2]
         full_name_split.remove(full_name_split[2])
-        # print('full_name_split:', full_name_split)
+        print('full_name_split:', full_name_split)
 
-      bars = full_name_split[1]
-      # print('bars:', bars)
+      bars = full_name_split[2]
+      print('bars:', bars)
 
       bars_split = bars.split(' ')
       # print('bars_split:', bars_split)
@@ -492,15 +516,15 @@ for cn_doc in cn_docs:
         bars_split.remove(bars_split[0])
       if 'and' in bars_split:
         bars_split.remove('and')
-        # print('found and')
+        print('found and')
 
 
-      # print('bars_split (' + str(len(bars_split)) +'):', bars_split)
+      print('bars_split (' + str(len(bars_split)) +'):', bars_split)
 
       first_bar = ''
       last_bar = ''
       for this_bars in bars_split:
-        # print('this_bars: ', this_bars)
+        print('this_bars: ', this_bars)
         # ‒
         if '–' in this_bars:
           this_bars_split = this_bars.split('–')
@@ -513,23 +537,22 @@ for cn_doc in cn_docs:
         else:
           this_bars_split = this_bars.split('-')
 
-        # print('this_bars_split:', this_bars_split)
+        print('this_bars_split:', this_bars_split)
 
-        if first_bar == '':
+        if first_bar == '' and False:
           first_bar = this_bars_split[0]
           if len(this_bars_split) == 2:
             last_bar = this_bars_split[1]
         else:
-          # print('find xmlids of measures and add to additionlIDs')
+          print('find xmlids of measures and add to additionlIDs')
           # format: A, edirom_measure_78c642fa-4699-4bc2-a29b-f60a7d429485; A, edirom_measure_aecebcb2-8aea-4af2-a6a1-9322bc0502ba
           # <sigle>, <xml:id>
 
           # this_bars_split.remove(this_bars_split[1])
           # this_bars_split[1] = '14'
           this_bars_split = expand_measure_ranges(this_bars_split)
-
           # TODO: this_bar: add all measures, not just range
-          # print('this_bars_split:', this_bars_split)
+          print('this_bars_split:', this_bars_split)
 
           for sigle in this_sources:
             for this_bar in this_bars_split:
