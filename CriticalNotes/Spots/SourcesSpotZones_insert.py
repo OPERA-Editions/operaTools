@@ -67,7 +67,7 @@ for sigle, source in sources.items():
                 surface_id, spot_zones = surface_zone
                 # print(f'surface_id: {surface_id}, this_id: {this_id}')
                 if this_id == surface_id:
-                    print(f'found {this_id}, deleting')
+                    print(f'found {this_id}, adding zone')
                     # surface.createElement('zone')
                     zone = minidom.parseString(spot_zones)
                     surface.appendChild(zone.documentElement)
@@ -88,6 +88,6 @@ for sigle, source in source_files.items():
     lines = []
     with open(path, "r") as file: 
         lines = file.readlines()
-        lines = [line.replace('<?xml version="1.0" ?>', '') for line in lines]
+        lines = [line.replace('<?xml version="1.0" ?>', '') for line in lines if line.strip() != '']
     with open(path, "w") as file: 
         file.writelines(lines)

@@ -64,7 +64,7 @@ for sigle, source in source_files.items():
     lines = []
     with open(path, "r") as file: 
         lines = file.readlines()
-        lines = [line.replace('<?xml version="1.0" ?>', '') for line in lines]
+        lines = [line.replace('<?xml version="1.0" ?>', '') for line in lines if line.strip() != '']
     with open(path, "w") as file: 
         file.writelines(lines)
 
