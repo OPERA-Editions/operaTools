@@ -1417,6 +1417,28 @@
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
+  
+  <!-- Match the <list> and convert it to <ul> -->
+  <xd:doc>
+    <xd:desc/>
+  </xd:doc>
+  <xsl:template match="tei:list">
+    <xsl:element name="p">
+      <xsl:element name="list">
+        <xsl:attribute name="rend" select="'bulleted'"/>
+        <xsl:apply-templates/>
+      </xsl:element>
+    </xsl:element>
+  </xsl:template>
+  <!-- Match <item> and convert to <li> with only text content -->
+  <xd:doc>
+    <xd:desc/>
+  </xd:doc>
+  <xsl:template match="tei:item">
+    <xsl:element name="item">
+      <xsl:apply-templates/>
+    </xsl:element>
+  </xsl:template>
 
   <xd:doc>
     <xd:desc/>
