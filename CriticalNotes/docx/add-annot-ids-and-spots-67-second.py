@@ -71,7 +71,7 @@ cn_docs = [
 ]
 
 # prefix of the annotation ids
-id_prefix = "opera_annot_"
+# id_prefix = "opera_annot_"
 # id of annot id col (zero based index)
 annot_col_id = 1
 
@@ -367,7 +367,7 @@ for cn_doc in cn_docs:
     # if i == 200: break
     # if i < 10: continue
 
-    # print('CN:', row.cells[1].text)
+    # print('CN:', row.cells[1].text)∏
 
     
 
@@ -404,4 +404,9 @@ for cn_doc in cn_docs:
     convert_docx_to_tei(output_file, out_file_cn_tei)
 
 
+
+print('done:')
+
+executionTime = (time.time() - startTime)
+print(f'script duration: {int(executionTime / 60)} m {int(executionTime % 60)} s {int((executionTime - int(executionTime)) * 10000)} ms')
 

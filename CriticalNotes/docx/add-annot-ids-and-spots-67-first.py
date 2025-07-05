@@ -24,6 +24,7 @@ import time
 # import subprocess
 import copy
 import re
+import os.path
 
 
 print('=' * 40)
@@ -39,7 +40,8 @@ TODO:
 
 # TODO: spot-id anpassen am ende
 
-
+# shall the docx be reloaded?
+always_reload_docx = False
 # shall the output file be written?
 write_output_file = True
 # convert the docx to TEI
@@ -59,7 +61,7 @@ cn_docs = [
   # cn: https://docs.google.com/spreadsheets/d/1ttb7FSfHO9gXd450TCrRtrf3jObXwD_6mLBt52cP5e4/edit?gid=0#gid=0
   # ['I-I', '1fVXvd_OFqcGomBztwYO6eiiWgCift6tmVrn6oZTYyDA', 1, 'CN_first', 'CN_first_addedcols']
   # ['I-I', '1fVXvd_OFqcGomBztwYO6eiiWgCift6tmVrn6oZTYyDA', 1, 'CN_first_addedcols', 'CN_first_addedcols_out']
-  ['Giselle CN', '1fVXvd_OFqcGomBztwYO6eiiWgCift6tmVrn6oZTYyDA', 1, 'CN_first', 'CN_first_addedcols_out', '/Users/tbachmann/repos/opera/edition-74338567/resources/CN/giselle_spots.csv', '1ttb7FSfHO9gXd450TCrRtrf3jObXwD_6mLBt52cP5e4', '0', 1],
+  ['Giselle CN', '1fVXvd_OFqcGomBztwYO6eiiWgCift6tmVrn6oZTYyDA', 1, 'CN_first_corrections', 'CN_first_addedcols_out_corrections', '/Users/tbachmann/repos/opera/edition-74338567/resources/CN/giselle_spots.csv', '1ttb7FSfHO9gXd450TCrRtrf3jObXwD_6mLBt52cP5e4', '0', 1],
   # TODO: Appendix
   # https://docs.google.com/document/d/1VpSQDrBFXn-spyzG8aCU-v_pKRbMHrWXQD0n9sowwoo/edit?tab=t.0
   # ['Giselle CN Appendix', '1VpSQDrBFXn-spyzG8aCU-v_pKRbMHrWXQD0n9sowwoo', 1, 'CN_App_first', 'CN_App_first_addedcols_out', 'x', 'x', 'x', 1],
@@ -194,7 +196,7 @@ def get_id_from_measure(number, sigle, bar):
   if sigle == 'A' and number == 'No. 10' and int(bar) >= 120 and int(bar) <= 143:
     return 'edirom_measure_c09e558d-6d4f-4b14-b0fb-bdc703d56da9'
   if sigle == 'A' and number == 'No. 8' and int(bar) >= 189 and int(bar) <= 195:
-    return 'edirom_measure_6e876961-acfa-4b86-89b4-33f5ffe5eba8 '
+    return 'edirom_measure_6e876961-acfa-4b86-89b4-33f5ffe5eba8'
   if sigle == 'A' and number == 'No. 8' and int(bar) >= 157 and int(bar) <= 171:
     return 'edirom_measure_a8753609-07fd-4456-964f-1ac1550d0416'
   if sigle == 'A' and number == 'No. 7' and int(bar) >= 98 and int(bar) <= 146:
@@ -228,7 +230,7 @@ def get_id_from_measure(number, sigle, bar):
     ['A', 'No. 14', 216, 'edirom_measure_2fd930ee-9c4d-4137-9372-fc12456b33d1'],
     ['A', 'No. 14', 194, 'edirom_measure_264bc29a-275f-46c6-8d36-264700b2022a'],
     ['A', 'No. 14', 191, 'edirom_measure_2e0ff84b-475b-481f-b907-066ad332fc21'],
-    ['A', 'No. 14', 199, 'edirom_measure_2e0ff84b-475b-481f-b907-066ad332fc21 '],
+    ['A', 'No. 14', 199, 'edirom_measure_2e0ff84b-475b-481f-b907-066ad332fc21'],
     ['A', 'No. 14', 190, 'edirom_measure_f7b9f0a4-2645-45f1-a3e4-0c2633436586'],
     ['A', 'No. 14', 192, 'edirom_measure_371fc135-dd81-47d8-aea2-300baaa841ca'],
     ['A', 'No. 14', 184, 'edirom_measure_371fc135-dd81-47d8-aea2-300baaa841ca'],
@@ -255,6 +257,17 @@ def get_id_from_measure(number, sigle, bar):
     ['A', 'No. 5', 242, 'edirom_measure_585894b2-a18d-490f-9fd4-2e8a22a028e6'],
     ['A', 'No. 4', 240, 'edirom_measure_80c23ae4-450b-41e2-b812-747f7057ce3d'],
     ['A', 'No. 4', 237, 'edirom_measure_91ddb05b-f685-4779-9e6e-9bfad735ab6a'],
+    ['A', 'No. 4', 242, 'edirom_measure_91f90215-1277-44af-96f0-6edbf8ffa0b8'],
+    ['A', 'No. 4', 234, 'edirom_measure_91f90215-1277-44af-96f0-6edbf8ffa0b8'],
+    ['A', 'No. 7', 153, 'edirom_measure_b723ef34-53d7-4887-b17c-b4c06416e082'],
+    ['A', 'No. 7', 165, 'edirom_measure_5b871276-808f-4465-933f-02daecaa83ad'],
+    ['A', 'No. 7', 169, 'edirom_measure_b723ef34-53d7-4887-b17c-b4c06416e082'],
+    ['A', 'No. 11', 361, 'edirom_measure_8f23c744-49d1-427b-9b52-f12ba07b6367'],
+    ['A', 'No. 11', 364, 'edirom_measure_f6eab2dc-edab-4f93-938e-527170c22973'],
+    ['A', 'No. 11', 365, 'edirom_measure_430da2ba-ef3d-4da9-a6a5-6d88b610118f'],
+    ['A', 'No. 11', 359, 'edirom_measure_12058364-1d2f-4179-b618-89464691a193'],
+    ['A', 'No. 11', 367, 'edirom_measure_12058364-1d2f-4179-b618-89464691a193'],
+    ['A', 'No. 8', 192, 'edirom_measure_6e876961-acfa-4b86-89b4-33f5ffe5eba8'], # 189-195
   ]
   for extra in extras:
     # print(int(bar), extra[2])
@@ -451,10 +464,17 @@ for cn_doc in cn_docs:
   input_file = cn_path + cn_doc[3] + '.docx'
   output_file = cn_path + cn_doc[4] + '.docx'
 
-  # download file
-  if not DEV or True:
+  # # download file
+  # if not DEV or True:
+  #   print('* downloading file from google docs')
+  #   get_google_spreadsheet_as_docx(input_gid, input_file)
+
+  # check if input docx exists, then check if always_reload_docx, else download file
+  if not os.path.isfile(input_file) or always_reload_docx:
     print('* downloading file from google docs')
     get_google_spreadsheet_as_docx(input_gid, input_file)
+  else:
+    print('* input file already exists, no download needed:', input_file)
 
 
   # prefix of the annotation ids
@@ -538,10 +558,12 @@ for cn_doc in cn_docs:
     if i == 0: continue
     # print('=====', row.cells[2].text)
 
-    # if i == 200: break
-    # if i < 10: continue
+    if i > 1149: break
+    if i < 1149: continue
 
     # print('CN:', row.cells[1].text)
+    # print(f'=== CN {i}:', row.cells[1].text)
+
 
     # add CN ID
     row.cells[0].text = str(i)
@@ -615,27 +637,61 @@ for cn_doc in cn_docs:
       # bars 11–12
       # bars 34‒35 and 41–42   => CN 17, 18
       # ! 'bars 34–35', '36–37 and 41–46'  => CN 19
+      # CN 282: No. 4, bars 63, 102, 139, 141, 143, 147, 149, 151, 179–180, 183–184, 187, 189, 191, 193, 234 and 242, P. Fl., Gr. Fl., Hb. I/II, Cl. en Ut I/II, Vn. I, Vn. II, Alto, Vlle
+      # CN 297; No. 4, bars 115–118 and 123–125, P. Fl., Gr. Fl.
+      # CN 299; No. 4, bars 115, 123 and 131, Vlle., Cb.
+      # ! CN 465: No. 5, bars 147, 149, 394 and 396, P. Fl., Gr. Fl.
 
-      if len(full_name_split) > 2 and 'and' in full_name_split[2] and not '(' in full_name_split[2]:
-        full_name_split[1] += ' ' + full_name_split[2]
-        full_name_split.remove(full_name_split[2])
-        # print('full_name_split:', full_name_split)
+      # ! CN 95: No. 2, bars 19–29, Bn. I
 
-      bars = full_name_split[1]
+      # print('full_name_split:', full_name_split)
+      bars_raw = []
+      for bar in full_name_split[1:]:
+        # print('-bar:', bar)
+        if 'and' in bar:
+          # print('found and:', bar)
+          bars_raw = full_name_split[1:full_name_split.index(bar)+1]
+          break
+      if len(bars_raw) == 0:
+        bars_raw = [full_name_split[1]]
+      # print('bars_raw:', bars_raw)
+      
+      # remove bar/s in first element
+      if 'bars' in bars_raw[0]:
+        bars_raw[0] = bars_raw[0].replace('bars', '').strip()
+      if 'bar' in bars_raw[0]:
+        bars_raw[0] = bars_raw[0].replace('bar', '').strip()
+      # print('bars_raw:', bars_raw)
+
+      # expand last element if contains 'and'
+      if 'and' in bars_raw[-1]:
+        both_lasts = bars_raw[-1].split(' and ')
+        bars_raw[-1] = both_lasts[0].strip()
+        bars_raw.append(both_lasts[1].strip())
+      # print('bars_raw:', bars_raw)
+      bars_split = bars_raw
+      
+
+      # if len(full_name_split) > 2 and 'and' in full_name_split[2] and not '(' in full_name_split[2]:
+      #   full_name_split[1] += ' ' + full_name_split[2]
+      #   full_name_split.remove(full_name_split[2])
+      #   # print('full_name_split:', full_name_split)
+
+      # bars = full_name_split[1]
       # print('bars:', bars)
 
-      bars_split = bars.split(' ')
+      # bars_split = bars.split(' ')
       # print('bars_split:', bars_split)
 
-      # remove text element
-      if 'bar' in bars_split[0]:
-        bars_split.remove(bars_split[0])
-      if 'and' in bars_split:
-        bars_split.remove('and')
-        # print('found and')
+      # # remove text element
+      # if 'bar' in bars_split[0]:
+      #   bars_split.remove(bars_split[0])
+      # if 'and' in bars_split:
+      #   bars_split.remove('and')
+      #   print('found and')
 
 
-      # print('bars_split (' + str(len(bars_split)) +'):', bars_split)
+      print('bars_split (' + str(len(bars_split)) +'):', bars_split)
 
       first_bar = ''
       last_bar = ''
@@ -653,7 +709,7 @@ for cn_doc in cn_docs:
         else:
           this_bars_split = this_bars.split('-')
 
-        # print('this_bars_split:', this_bars_split)
+        print('this_bars_split:', this_bars_split)
 
         if first_bar == '':
           first_bar = this_bars_split[0]
@@ -674,8 +730,9 @@ for cn_doc in cn_docs:
           for sigle in this_sources:
             for this_bar in this_bars_split:
               this_id = get_id_from_measure(this_no, sigle, this_bar)
+              print(f'this_no: {this_no}, sigle: {sigle}, this_bar: {this_bar}, this_id: {this_id}')
               if this_id == '':
-                print(f'{i}: {this_no}, {sigle}, {this_bar}')
+                print(f'not found: CN{i}: {this_no}, {sigle}, {this_bar}')
               additional_ids.append(f'{sigle}, {this_id}')
       
       # print('first_bar:', first_bar)
@@ -685,8 +742,8 @@ for cn_doc in cn_docs:
       row.cells[9].text = last_bar
 
       
-      # for additional_id in additional_ids:
-      #   print(additional_id)
+      for additional_id in additional_ids:
+        print(additional_id)
       
       additional_ids = '; '.join(additional_ids)
       # print(additional_ids)
