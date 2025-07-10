@@ -52,6 +52,8 @@ convert_to_tei = True
 reload_spots = False
 # shall the spots be inserted?
 insert_spots = False
+# cn no offset
+cn_no_offset = 2182
 
 
 cn_path = '/Users/tbachmann/repos/opera/edition-74338567/resources/CN/'
@@ -586,13 +588,15 @@ for cn_doc in cn_docs:
     if i == 0: continue
     # print('=====', row.cells[2].text)
 
-    # if i < 343: continue
-    # if i > 343: break
+    # if i < 47: continue
+    # if i > 47: break
 
-    print(f'=== CN {i}:', row.cells[1].text)
+    cn_no = cn_no_offset + i
+
+    print(f'=== CN {cn_no}:', row.cells[1].text)
 
     # add CN ID
-    row.cells[0].text = str(i)
+    row.cells[0].text = str(cn_no)
 
     # create new annot id
     annot_id = id_prefix + str(uuid.uuid4())
@@ -650,80 +654,250 @@ for cn_doc in cn_docs:
       # continue
 
 
-    # CN ... 114, 132, 162, 164, 168, 186, 187
+    # CN 47 114, 132, 162, 164, 168, 186, 187
     elif  'Appendix 1, Excerpt 7 from No. 8, bars 34l‒35, P. Fl., Gr. Fl., Cl. en Si flat I' in full_name:
+      # CN 47
       additional_ids = [
-        'tbd',
+        'A, edirom_measure_b7b47970-93aa-4787-a565-b624a62fbe2c', # 34l
+        'A, edirom_measure_fba3cb75-9e9c-4c7c-962d-87b3c41a0c0d', # 35
+        'ME, opera_measure_9a9ff204-0f8b-4c9b-86be-a5b1db380cc6', # 34l
+        'ME, opera_measure_057f5fb2-7b77-476d-8d35-6245856928e0', # 35
       ]
       additional_ids = '; '.join(additional_ids)
       # print(additional_ids)
       row.cells[12].text = additional_ids
     elif  'Appendix 1, Excerpt 13 from No. 13, bars 103q‒104, Vn. I' in full_name:
+      # CN 111
       additional_ids = [
-        'tbd',
+        'A, edirom_measure_a303055a-b422-4496-bd47-abd148acd631', # 103q
+        'A, edirom_measure_90a4abc2-db56-4a28-877d-84d7963b63ef', # 103r
+        'A, edirom_measure_e58a14e5-9483-4cca-bb0b-5bd19e3d8767', # 103s
+        'A, edirom_measure_a94cb281-398e-4649-956e-cacdd50a01e9', # 103t
+        'A, edirom_measure_5c804f01-3e8b-4229-b953-066799c4c23e', # 104
+        'B, edirom_measure_d133c029-1426-498d-90d4-5e774b1375cb', # 100
+        'B, edirom_measure_b6938c95-c167-40aa-ab1c-dc226ec28cba', # 101
+        'B, edirom_measure_50feb158-ee17-4311-8b90-5181799d3823', # 102
+        'B, edirom_measure_aea6e0dd-bbe2-4985-a869-9ecd34d171c7', # 103
+          'ME, opera_measure_5a234b87-f774-42a2-bcca-b4be6e6fa96a', # 103q
+        'ME, opera_measure_67142477-1112-4006-a7b4-8b63c1a0b161', # 103r
+        'ME, opera_measure_be044a7b-ba02-4854-9af7-bca128847f91', # 103s
+        'ME, opera_measure_f06ed7ed-f8a9-45fa-87cb-2757fdd7296f', # 103t
+        'ME, opera_measure_26b4c1ef-3bdd-45a4-9fa8-b6f60260477c', # 104
       ]
       additional_ids = '; '.join(additional_ids)
       # print(additional_ids)
       row.cells[12].text = additional_ids
     elif      'Appendix 1, Excerpt 13 from No. 13, bars 103r‒104, Vn. II' in full_name:
+      # CN 114
       additional_ids = [
-        'tbd',
+        'A, edirom_measure_a303055a-b422-4496-bd47-abd148acd631', # 103q
+        'A, edirom_measure_90a4abc2-db56-4a28-877d-84d7963b63ef', # 103r
+        'A, edirom_measure_e58a14e5-9483-4cca-bb0b-5bd19e3d8767', # 103s
+        'A, edirom_measure_a94cb281-398e-4649-956e-cacdd50a01e9', # 103t
+        'A, edirom_measure_5c804f01-3e8b-4229-b953-066799c4c23e', # 104
+        'B, edirom_measure_d133c029-1426-498d-90d4-5e774b1375cb', # 100
+        'B, edirom_measure_b6938c95-c167-40aa-ab1c-dc226ec28cba', # 101
+        'B, edirom_measure_50feb158-ee17-4311-8b90-5181799d3823', # 102
+        'B, edirom_measure_aea6e0dd-bbe2-4985-a869-9ecd34d171c7', # 103
+        'ME, opera_measure_5a234b87-f774-42a2-bcca-b4be6e6fa96a', # 103q
+        'ME, opera_measure_67142477-1112-4006-a7b4-8b63c1a0b161', # 103r
+        'ME, opera_measure_be044a7b-ba02-4854-9af7-bca128847f91', # 103s
+        'ME, opera_measure_f06ed7ed-f8a9-45fa-87cb-2757fdd7296f', # 103t
+        'ME, opera_measure_26b4c1ef-3bdd-45a4-9fa8-b6f60260477c', # 104
       ]
       additional_ids = '; '.join(additional_ids)
       # print(additional_ids)
       row.cells[12].text = additional_ids
     elif      'Appendix 1, Excerpt 16 from No. 17, bars 176–177a, 177g–178, Gr. Fl.' in full_name:
+      # CN 132
       additional_ids = [
-        'tbd',
+        'A, edirom_measure_6cc76a76-d32a-45d8-9c11-5b675738e763', # 176
+        'A, edirom_measure_d9636c0b-c8a5-4b8e-b5ed-270b382f0747', # 177
+        'A, edirom_measure_d95d1c2e-6370-4048-81ac-dd9129bdad94', # 177a
+        'A, edirom_measure_3332b4e7-4ea3-490e-b2b2-2b0905ab5619', # 177g
+        'A, edirom_measure_4d264760-2db7-4c2f-a3d3-94c7b0922180', # 177h
+        'A, edirom_measure_12336454-657d-4a45-b85e-86c07a28b181', # 178
+        'B, edirom_measure_4f1553b3-3bd5-4eda-bbb7-ba7d11866e04', # 176
+        'B, edirom_measure_b8bd6546-57a9-436d-92cf-8121d52a9b10', # 177
+        'B, edirom_measure_1e9cd15a-7b40-4bbf-b48b-5fae139628f5', # 178
+        'ME, opera_measure_c28c9eb1-4706-44e3-951c-bf2393d60f27', # 176
+        'ME, opera_measure_8ca2d4bf-30c4-40cd-955f-7094419a6c3b', # 177
+        'ME, opera_measure_adddd2de-0f8d-498e-8521-2dd44f06cdaa', # 177a
+        'ME, opera_measure_6d9d3179-c7d6-4dc1-aee4-b564c4952d3a', # 177g
+        'ME, opera_measure_e03855dd-7ee0-47d7-ba74-ea0a03cc8cbf', # 177h
+        'ME, opera_measure_0dc0efa9-7b37-4463-a41f-0afec3769044', # 178
       ]
       additional_ids = '; '.join(additional_ids)
       # print(additional_ids)
       row.cells[12].text = additional_ids
     elif      'Appendix 1, Excerpt 16 from No. 17, bars 173–174, 177–177a, 177d–177e and 178–179, Bn. I' in full_name:
+      # CN 131
       additional_ids = [
-        'tbd',
+        'A, edirom_measure_63158282-f2a4-484e-badf-74ab768037c1', # 173
+        'A, edirom_measure_7bea70d6-f78c-412a-b1a0-9f8546739ecb', # 174
+        'A, edirom_measure_d9636c0b-c8a5-4b8e-b5ed-270b382f0747', # 177
+        'A, edirom_measure_d95d1c2e-6370-4048-81ac-dd9129bdad94', # 177a
+        'A, edirom_measure_b4b93712-de2d-4ed6-a539-3db0ad80b2ea', # 177d
+        'A, edirom_measure_348d39be-370d-4f9c-ae96-c67c70a2ee0f', # 177e
+        'A, edirom_measure_12336454-657d-4a45-b85e-86c07a28b181', # 178
+        'A, edirom_measure_51be5713-842c-43f4-8510-61e3db1ab21a', # 179
+        'B, edirom_measure_0ecbe4af-9c40-4e74-84fa-d5a7b24acbed', # 173
+        'B, edirom_measure_5445b301-b67c-4693-a688-14ddae29ea35', # 174
+        'B, edirom_measure_b8bd6546-57a9-436d-92cf-8121d52a9b10', # 177
+        'B, edirom_measure_1e9cd15a-7b40-4bbf-b48b-5fae139628f5', # 178
+        'B, edirom_measure_afa19c72-34ce-457e-bda2-d09bc402a77a', # 179
+        'ME, opera_measure_b9c96890-0493-4da3-a19f-5e5fda86291b', # 173
+        'ME, opera_measure_1c60f09d-22d1-4885-9c83-b16343b2d2ae', # 174
+        'ME, opera_measure_8ca2d4bf-30c4-40cd-955f-7094419a6c3b', # 177
+        'ME, opera_measure_adddd2de-0f8d-498e-8521-2dd44f06cdaa', # 177a
+        'ME, opera_measure_15374911-e868-4e34-9191-7dbec8193ecf', # 177d
+        'ME, opera_measure_67fd153e-2611-4b3e-bd84-72ab2531d09c', # 177e
+        'ME, opera_measure_0dc0efa9-7b37-4463-a41f-0afec3769044', # 178
+        'ME, opera_measure_3769ed11-b721-4339-8643-49e75e94b4c0', # 179
       ]
       additional_ids = '; '.join(additional_ids)
       # print(additional_ids)
       row.cells[12].text = additional_ids
     elif      'Appendix 1, Excerpt 20 from No. 19, bars 124e–125, Cor en Mi flat I/II' in full_name:
+      # CN 162
       additional_ids = [
-        'tbd',
-      ]
+        'A, edirom_measure_0f94e795-0df7-4489-964b-9a6b3ed08652', # 124e
+        'A, edirom_measure_be265adf-fc66-4d79-9779-ef99c3f3d76d', # 124f
+        'A, edirom_measure_48c8b136-09c1-4c45-a49b-c27705efa74b', # 124g
+        'A, edirom_measure_8ed79c6b-5e8f-47c1-b6ca-995621fe0db1', # 124h
+        'A, edirom_measure_e2fd79ee-935f-4ab6-9290-83c7d0536fde', # 124i
+        'A, edirom_measure_039e1816-2ade-4174-9761-4ef37c6be256', # 124j
+        'A, edirom_measure_bfd8c8c9-4f86-4865-a583-b2378888f186', # 124k
+        'A, edirom_measure_08b09474-acf1-41c0-a535-8623db38cfdf', # 124l
+        'A, edirom_measure_68155509-a7b1-4329-8019-1ab1190ecf23', # 124m
+        'A, edirom_measure_a0dcb32a-0ee3-4c2a-9960-0a7b98d96797', # 124n
+        'A, edirom_measure_bafba253-f67b-4df1-804f-c31535ee7d9b', # 124o
+        'A, edirom_measure_84eb9f8e-0b3b-458f-a0be-7050ba486bcc', # 124p
+        'A, edirom_measure_ef2998a2-e21a-4ed4-a9e4-7cb8c8768655', # 124q
+        'A, edirom_measure_fc48bedd-028f-4ffb-8aa8-3211a2368ec3', # 124r
+        'A, edirom_measure_7c796cb9-269f-4d12-a575-86ec3d865153', # 124s
+        'A, edirom_measure_17b1b812-ed71-4afb-8877-edc7a26663d3', # 125
+        'ME, opera_measure_b17bc0e1-1edf-4615-87f3-e6036778ad5e', # 124e
+        'ME, opera_measure_c7d85844-2586-45f9-abef-00883e445fc9', # 124f
+        'ME, opera_measure_bc1a0c1a-47f0-4ad7-97dd-ddbe67048e39', # 124g
+        'ME, opera_measure_8fb537fd-7fe9-4ed2-884b-97a5d92cdc4c', # 124h
+        'ME, opera_measure_9f5ca6c5-5967-4658-baa3-336ab476187c', # 124i
+        'ME, opera_measure_7a39b1c3-cfda-465a-a14e-8d5431ffd8d3', # 124j
+        'ME, opera_measure_50535d23-2c9a-4916-a99c-f861f848a0e7', # 124k
+        'ME, opera_measure_df86ec96-4559-4853-b732-fecd43e2dd68', # 124l
+        'ME, opera_measure_aaf24154-70b8-4897-8be3-9c6e473ee4ba', # 124m
+        'ME, opera_measure_14362f89-1941-4149-bac0-ef84f6e16734', # 124n
+        'ME, opera_measure_6cb44811-1182-402d-871b-b1179d071e3c', # 124o
+        'ME, opera_measure_8265f856-370c-40ff-b7df-58a732cd4581', # 124p
+        'ME, opera_measure_5ff4f343-7007-43aa-a50e-0c27b243d4ef', # 124q
+        'ME, opera_measure_3b50154e-6386-41e7-9527-31235ee016ae', # 124r
+        'ME, opera_measure_266a3128-8f9e-4c2b-ad5b-b70d7e9c865c', # 124s
+        'ME, opera_measure_4bf0c5a8-754d-4b06-97c1-1b69c6e621d3', # 125
+    ]
       additional_ids = '; '.join(additional_ids)
       # print(additional_ids)
       row.cells[12].text = additional_ids
     elif      'Appendix 1, Excerpt 20 from No. 19, bars 124l–125, Cl. en Si flat I/II' in full_name:
+      # CN 164
       additional_ids = [
-        'tbd',
+        'A, edirom_measure_08b09474-acf1-41c0-a535-8623db38cfdf', # 124l
+        'A, edirom_measure_68155509-a7b1-4329-8019-1ab1190ecf23', # 124m
+        'A, edirom_measure_a0dcb32a-0ee3-4c2a-9960-0a7b98d96797', # 124n
+        'A, edirom_measure_bafba253-f67b-4df1-804f-c31535ee7d9b', # 124o
+        'A, edirom_measure_84eb9f8e-0b3b-458f-a0be-7050ba486bcc', # 124p
+        'A, edirom_measure_ef2998a2-e21a-4ed4-a9e4-7cb8c8768655', # 124q
+        'A, edirom_measure_fc48bedd-028f-4ffb-8aa8-3211a2368ec3', # 124r
+        'A, edirom_measure_7c796cb9-269f-4d12-a575-86ec3d865153', # 124s
+        'A, edirom_measure_17b1b812-ed71-4afb-8877-edc7a26663d3', # 125
+        'ME, opera_measure_df86ec96-4559-4853-b732-fecd43e2dd68', # 124l
+        'ME, opera_measure_aaf24154-70b8-4897-8be3-9c6e473ee4ba', # 124m
+        'ME, opera_measure_14362f89-1941-4149-bac0-ef84f6e16734', # 124n
+        'ME, opera_measure_6cb44811-1182-402d-871b-b1179d071e3c', # 124o
+        'ME, opera_measure_8265f856-370c-40ff-b7df-58a732cd4581', # 124p
+        'ME, opera_measure_5ff4f343-7007-43aa-a50e-0c27b243d4ef', # 124q
+        'ME, opera_measure_3b50154e-6386-41e7-9527-31235ee016ae', # 124r
+        'ME, opera_measure_266a3128-8f9e-4c2b-ad5b-b70d7e9c865c', # 124s
+        'ME, opera_measure_4bf0c5a8-754d-4b06-97c1-1b69c6e621d3', # 125
       ]
       additional_ids = '; '.join(additional_ids)
       # print(additional_ids)
       row.cells[12].text = additional_ids
     elif      'Appendix 1, Excerpt 20 from No. 19, bars 124m–125, Hb. I/II' in full_name:
+      # CN 168
       additional_ids = [
-        'tbd',
+        'A, edirom_measure_68155509-a7b1-4329-8019-1ab1190ecf23', # 124m
+        'A, edirom_measure_a0dcb32a-0ee3-4c2a-9960-0a7b98d96797', # 124n
+        'A, edirom_measure_bafba253-f67b-4df1-804f-c31535ee7d9b', # 124o
+        'A, edirom_measure_84eb9f8e-0b3b-458f-a0be-7050ba486bcc', # 124p
+        'A, edirom_measure_ef2998a2-e21a-4ed4-a9e4-7cb8c8768655', # 124q
+        'A, edirom_measure_fc48bedd-028f-4ffb-8aa8-3211a2368ec3', # 124r
+        'A, edirom_measure_7c796cb9-269f-4d12-a575-86ec3d865153', # 124s
+        'A, edirom_measure_17b1b812-ed71-4afb-8877-edc7a26663d3', # 125
+        'ME, opera_measure_aaf24154-70b8-4897-8be3-9c6e473ee4ba', # 124m
+        'ME, opera_measure_14362f89-1941-4149-bac0-ef84f6e16734', # 124n
+        'ME, opera_measure_6cb44811-1182-402d-871b-b1179d071e3c', # 124o
+        'ME, opera_measure_8265f856-370c-40ff-b7df-58a732cd4581', # 124p
+        'ME, opera_measure_5ff4f343-7007-43aa-a50e-0c27b243d4ef', # 124q
+        'ME, opera_measure_3b50154e-6386-41e7-9527-31235ee016ae', # 124r
+        'ME, opera_measure_266a3128-8f9e-4c2b-ad5b-b70d7e9c865c', # 124s
+        'ME, opera_measure_4bf0c5a8-754d-4b06-97c1-1b69c6e621d3', # 125
       ]
       additional_ids = '; '.join(additional_ids)
       # print(additional_ids)
       row.cells[12].text = additional_ids
     elif      'Appendix 1, Excerpt 22 from No. 20, bars 78j‒79, Cor en Fa I/II' in full_name:
+      # CN 186
       additional_ids = [
-        'tbd',
+        'A, edirom_measure_36d448cc-c480-449f-ace1-63e9d5bf2035', # 78j
+        'A, edirom_measure_52a6cfcf-3350-46c6-a603-cd00465c9a33', # 78k
+        'A, edirom_measure_b4ad7bbe-ac14-45eb-a982-038968a402d2', # 78l
+        'A, edirom_measure_2eba41cb-b87b-4968-97a3-ef55ab478305', # 78m
+        'A, edirom_measure_b2bb703b-e664-4d3a-8755-01e54ec209d3', # 78n
+        'A, edirom_measure_aedbb2ce-df4f-45e9-97be-63394553cecf', # 78o
+        'A, edirom_measure_145fd68b-acbf-4902-bee0-a88f37f14ad2', # 78p
+        'A, edirom_measure_f5eba8d2-4cc4-438d-b765-a5e72b2298c5', # 79
+        'ME, opera_measure_22461d39-af65-4a4c-a514-bd79a7d88f1b', # 78j
+        'ME, opera_measure_630ddf16-1fc8-49d1-bc66-0cb5f022bca7', # 78k
+        'ME, opera_measure_703f5589-4d41-4915-bc55-f2459b79f38d', # 78l
+        'ME, opera_measure_c6d20deb-b221-4486-aa70-47b18eab845d', # 78m
+        'ME, opera_measure_f6ae6700-7fca-43a8-ae69-e09084b506e6', # 78n
+        'ME, opera_measure_f876c83e-7f79-4990-8547-c55c45c3bae7', # 78o
+        'ME, opera_measure_87f27fc3-d050-4f92-b0d7-bc26ee615d53', # 78p
+        'ME, opera_measure_cff7e337-8b8e-4a98-b856-d5f5d94b3c10', # 79
       ]
       additional_ids = '; '.join(additional_ids)
       # print(additional_ids)
       row.cells[12].text = additional_ids
     elif      'Appendix 1, Excerpt 22 from No. 20, bars 78k–79, Cl. en Ut I/II' in full_name:
+      # CN 187
       additional_ids = [
-        'tbd',
+        'A, edirom_measure_52a6cfcf-3350-46c6-a603-cd00465c9a33', # 78k
+        'A, edirom_measure_b4ad7bbe-ac14-45eb-a982-038968a402d2', # 78l
+        'A, edirom_measure_2eba41cb-b87b-4968-97a3-ef55ab478305', # 78m
+        'A, edirom_measure_b2bb703b-e664-4d3a-8755-01e54ec209d3', # 78n
+        'A, edirom_measure_aedbb2ce-df4f-45e9-97be-63394553cecf', # 78o
+        'A, edirom_measure_145fd68b-acbf-4902-bee0-a88f37f14ad2', # 78p
+        'A, edirom_measure_f5eba8d2-4cc4-438d-b765-a5e72b2298c5', # 79
+        'ME, opera_measure_630ddf16-1fc8-49d1-bc66-0cb5f022bca7', # 78k
+        'ME, opera_measure_703f5589-4d41-4915-bc55-f2459b79f38d', # 78l
+        'ME, opera_measure_c6d20deb-b221-4486-aa70-47b18eab845d', # 78m
+        'ME, opera_measure_f6ae6700-7fca-43a8-ae69-e09084b506e6', # 78n
+        'ME, opera_measure_f876c83e-7f79-4990-8547-c55c45c3bae7', # 78o
+        'ME, opera_measure_87f27fc3-d050-4f92-b0d7-bc26ee615d53', # 78p
+        'ME, opera_measure_cff7e337-8b8e-4a98-b856-d5f5d94b3c10', # 79
       ]
       additional_ids = '; '.join(additional_ids)
       # print(additional_ids)
       row.cells[12].text = additional_ids
     elif      'Appendix 1, Excerpt 22 from No. 20, bars 78o–79, Gr. Fl.' in full_name:
+      # CN 188
       additional_ids = [
-        'tbd',
+        'A, edirom_measure_aedbb2ce-df4f-45e9-97be-63394553cecf', # 78o
+        'A, edirom_measure_145fd68b-acbf-4902-bee0-a88f37f14ad2', # 78p
+        'A, edirom_measure_f5eba8d2-4cc4-438d-b765-a5e72b2298c5', # 79
+        'ME, opera_measure_f876c83e-7f79-4990-8547-c55c45c3bae7', # 78o
+        'ME, opera_measure_87f27fc3-d050-4f92-b0d7-bc26ee615d53', # 78p
+        'ME, opera_measure_cff7e337-8b8e-4a98-b856-d5f5d94b3c10', # 79
       ]
       additional_ids = '; '.join(additional_ids)
       # print(additional_ids)
@@ -735,7 +909,7 @@ for cn_doc in cn_docs:
     else:
       # split full_name
       full_name_split = [x.strip() for x in full_name.split(',')]
-      print(i, full_name_split)
+      print(cn_no, full_name_split)
 
       # print(full_name_split[])
 
@@ -901,6 +1075,7 @@ for cn_doc in cn_docs:
       # print(additional_ids)
       row.cells[12].text = additional_ids
 
+    print('additional_ids:', additional_ids)
 
 
 

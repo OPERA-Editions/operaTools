@@ -701,13 +701,13 @@ for cn_doc in cn_docs:
         if '–' in this_bars:
           this_bars_split = this_bars.split('–')
         elif '‒' in this_bars:
-          this_bars_split = this_bars.split('‒')
+          this_bars_split = this_bars.split('‒') # should not be found
         elif '−' in this_bars:
-          this_bars_split = this_bars.split('−')
+          this_bars_split = this_bars.split('−') # should not be found
         # elif '–' in this_bars:
         #   this_bars_split = this_bars.split('–')
         else:
-          this_bars_split = this_bars.split('-')
+          this_bars_split = this_bars.split('-') # regular dash, should also not be found
 
         print('this_bars_split:', this_bars_split)
 

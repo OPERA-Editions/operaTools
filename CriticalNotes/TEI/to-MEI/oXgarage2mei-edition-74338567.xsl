@@ -1161,7 +1161,8 @@
                   <xsl:variable name="additionalParticipantTSourceDocURI">
                     <xsl:choose>
                       <xsl:when test="contains($additionalParticipantTid, 'measure')">
-                        <xsl:value-of select="document-uri($sourceDocs[matches(//mei:sourceDesc/mei:source/mei:identifier[@type = 'siglum'], $additionalParticipantTSiglum)])"/>
+                        <!-- with source 'E' had to make sure, that regex matches() does not find 'E' in 'ME' and fails -->
+                        <xsl:value-of select="document-uri($sourceDocs[matches(//mei:sourceDesc/mei:source/mei:identifier[@type = 'siglum'], concat('^', $additionalParticipantTSiglum, '$'))])"/>
                       </xsl:when>
                       <xsl:otherwise>
                         <xsl:value-of select="document-uri($textSourceDocs[matches(//tei:altIdentifier/tei:idno, $additionalParticipantTSiglum)])"/>

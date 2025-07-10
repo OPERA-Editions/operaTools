@@ -45,7 +45,7 @@ write_output_file = True
 # convert the docx to TEI
 convert_to_tei = True
 # shall the spots be reloaded?
-reload_spots = False
+reload_spots = True
 # shall the spots be inserted?
 insert_spots = True
 # shall the input file be reloaded?
@@ -64,7 +64,9 @@ cn_docs = [
   # ['I-I', '1fVXvd_OFqcGomBztwYO6eiiWgCift6tmVrn6oZTYyDA', 1, 'CN_first', 'CN_first_addedcols_out', '/Users/tbachmann/repos/opera/edition-74338567/resources/CN/giselle_spots.csv', '1ttb7FSfHO9gXd450TCrRtrf3jObXwD_6mLBt52cP5e4', '0', 1]
   # CN_first_addedcols_out: https://docs.google.com/document/d/1rAlGi8w-uAvho8Giq_tu-YiewDIJ-ahzDfH_SBT1rXY/edit?usp=sharing
   # spots: 1ttb7FSfHO9gXd450TCrRtrf3jObXwD_6mLBt52cP5e4
-  ['I-I', '1rAlGi8w-uAvho8Giq_tu-YiewDIJ-ahzDfH_SBT1rXY', 1, 'CN_first_addedcols_out', 'CN_second_out', '/Users/tbachmann/repos/opera/edition-74338567/resources/CN/giselle_spots.csv', '1ttb7FSfHO9gXd450TCrRtrf3jObXwD_6mLBt52cP5e4', '0', 1, '../edition-74338567/resources/CN/CN_Giselle.xml']
+  # ['I-I', '1rAlGi8w-uAvho8Giq_tu-YiewDIJ-ahzDfH_SBT1rXY', 1, 'CN_first_addedcols_out', 'CN_second_out', '/Users/tbachmann/repos/opera/edition-74338567/resources/CN/giselle_spots.csv', '1ttb7FSfHO9gXd450TCrRtrf3jObXwD_6mLBt52cP5e4', '0', 1, '../edition-74338567/resources/CN/CN_Giselle.xml']
+  # https://docs.google.com/document/d/1PXc_7PzY0Fo6qilUVXdduxDUUatzX6KYgU6NGqPLMY8/edit?tab=t.0
+  ['I-I', '1PXc_7PzY0Fo6qilUVXdduxDUUatzX6KYgU6NGqPLMY8', 1, 'CN_App_first_addedcols_out', 'CN-app_second_out', '/Users/tbachmann/repos/opera/edition-74338567/resources/CN/giselle_spots.csv', '1ttb7FSfHO9gXd450TCrRtrf3jObXwD_6mLBt52cP5e4', '0', 1, '../edition-74338567/resources/CN/CN_App_Giselle.xml']
   # path-to-csv-file, spot-spreadsheet-key, spot-spreadsheet-id, spot-id-start
   # ['I-I', '1fVXvd_OFqcGomBztwYO6eiiWgCift6tmVrn6oZTYyDA', 1, 'CN_first_part2', 'CN_first_part2_dev']
   # ['I-I', '1fVXvd_OFqcGomBztwYO6eiiWgCift6tmVrn6oZTYyDA', 1, 'CN_first_part2_dev', 'CN_first_part2_dev_out']
@@ -362,7 +364,9 @@ for cn_doc in cn_docs:
   for i, row in enumerate(table.rows):
     # break
     if i == 0: continue
-    # print('=====', row.cells[2].text)
+
+    # if 'Introductory Note' in row.cells[1].text:
+    #   print('===== CN', row.cells[0].text, row.cells[1].text)
 
     # if i == 200: break
     # if i < 10: continue
@@ -378,7 +382,9 @@ for cn_doc in cn_docs:
       try:
           # actual_spot = spots_input[actual_spot_id]
           # print('spots_input[i]:', spots_input[i])
-          row.cells[11].paragraphs[0].text = spots_input[i]
+          # row.cells[11].paragraphs[0].text = spots_input[i]
+          row.cells[11].paragraphs[0].text = spots_input[int(row.cells[0].text)]
+          # print('row.cells[11].text:', row.cells[11].text)
       except:
           # print('* no spots found for cn', i)
           pass
@@ -386,7 +392,7 @@ for cn_doc in cn_docs:
     # add additionalIDs for sources D-G
     sources = row.cells[3].paragraphs[0].text
     additionlIDs = row.cells[12].paragraphs[0].text
-    print('sources:', sources)
+    # print('sources:', sources)
     if 'D' in sources:
       if additionlIDs != '':
         additionlIDs += '; '
